@@ -1,0 +1,64 @@
+export const es = {
+  common: {
+    app_name: 'humiliateMe',
+    save: 'Guardar',
+    cancel: 'Cancelar',
+    loading: 'Cargando...',
+  },
+  nav: {
+    habits: 'Hábitos',
+    new_habit: 'Nuevo hábito',
+    settings: 'Configuración',
+  },
+  settings: {
+    language: 'Idioma',
+    tone_level: 'Nivel de tono',
+    notification_time: 'Hora del recordatorio',
+    enable_notifications: 'Activar notificaciones',
+  },
+  language: {
+    en: 'Inglés',
+    es: 'Español',
+  },
+  tone: {
+    level0: 'Suave',
+    level1: 'Sarcástico',
+    level2: 'Mano dura',
+    level3: 'Ragebait',
+  },
+  notifications: {
+    title: 'Chequeo diario',
+  },
+  week: {
+    mon: 'Lunes',
+    tue: 'Martes',
+    wed: 'Miércoles',
+    thu: 'Jueves',
+    fri: 'Viernes',
+    sat: 'Sábado',
+    sun: 'Domingo',
+  },
+  add_habit: {
+    habit_name: 'Nombre del hábito',
+    create: 'Crear',
+    days: 'Días',
+    time: 'Hora',
+    time_hint: 'Toca para cambiar (temporal)',
+    validation: 'Elige al menos 1 día y un nombre.',
+  },
+  home: {
+    add_habit: 'Agregar hábito',
+    empty: 'Aún no tienes hábitos. Crea el primero.',
+    completed_today: 'Completado hoy',
+    not_done_today: 'No hecho hoy',
+    sections: {
+      active: 'Activos ahora',
+      active_hint: 'Programados para hoy y ya llegó la hora.',
+      upcoming: 'Próximos hoy',
+      other: 'Otros hábitos',
+    },
+    no_active: 'No hay nada activo ahora.',
+    no_upcoming: 'No hay hábitos próximos para hoy.',
+    no_other: 'No hay otros hábitos.',
+  },
+};
