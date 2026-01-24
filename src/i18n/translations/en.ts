@@ -19,6 +19,7 @@ export const en = {
   language: {
     en: 'English',
     es: 'Spanish',
+    ar: 'Arabic',
   },
   tone: {
     level0: 'Gentle',
@@ -60,5 +61,20 @@ export const en = {
     no_active: 'Nothing active right now.',
     no_upcoming: 'No upcoming habits for today.',
     no_other: 'No other habits.',
+    urgent_motivation: 'I need motivation now',
+  },
+  motivation: {
+    title: 'Motivation',
+    add: 'Add link',
+    random: 'Random',
+    empty: 'No items yet. Add your first link.',
+    open: 'Open',
+    open_external: 'Open externally',
+    delete: 'Delete',
+    url: 'URL',
+    title_optional: 'Title (optional)',
+    save: 'Save',
+    detected_kind: 'Detected: {kind}',
+    kind: {}, edit_title: 'Edit title',
   },
 };

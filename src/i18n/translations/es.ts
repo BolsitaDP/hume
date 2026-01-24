@@ -19,6 +19,7 @@ export const es = {
   language: {
     en: 'Inglés',
     es: 'Español',
+    ar: 'Árabe',
   },
   tone: {
     level0: 'Suave',
@@ -60,5 +61,20 @@ export const es = {
     no_active: 'No hay nada activo ahora.',
     no_upcoming: 'No hay hábitos próximos para hoy.',
     no_other: 'No hay otros hábitos.',
+    urgent_motivation: 'Necesito motivaci�n urgente',
+  },
+  motivation: {
+    title: 'Motivaci�n',
+    add: 'Agregar link',
+    random: 'Aleatorio',
+    empty: 'A�n no tienes items. Agrega tu primer link.',
+    open: 'Abrir',
+    open_external: 'Abrir afuera',
+    delete: 'Eliminar',
+    url: 'URL',
+    title_optional: 'T�tulo (opcional)',
+    save: 'Guardar',
+    detected_kind: 'Detectado: {kind}',
+    kind: {}, edit_title: 'Editar t�tulo',
   },
 };

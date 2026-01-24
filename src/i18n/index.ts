@@ -2,10 +2,11 @@ import { I18n } from 'i18n-js';
 import * as Localization from 'expo-localization';
 import { en } from './translations/en';
 import { es } from './translations/es';
+import { ar } from './translations/ar';
 
 export type AppLocale = 'en' | 'es' | 'ar';
 
-export const i18n = new I18n({ en, es });
+export const i18n = new I18n({ en, es, ar });
 i18n.enableFallback = true;
 
 export function getDeviceLocale(): AppLocale {

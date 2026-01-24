@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
-import { Card, Divider, Text } from 'react-native-paper';
+import { Button, Card, Divider, Text } from 'react-native-paper';
 
 import HabitCard from '../ui/components/HabitCard';
 import AnimatedFab from '../ui/components/AnimatedFab';
@@ -62,6 +62,15 @@ export default function HomeScreen({ navigation }: any) {
           <Text>{t('home.empty')}</Text>
         ) : (
           <>
+            <Button
+              mode="contained-tonal"
+              icon="flash"
+              style={{ marginBottom: 12 }}
+              onPress={() => navigation.navigate('UrgentMotivation')}
+            >
+              {t('home.urgent_motivation')}
+            </Button>
+
             <Card style={{ marginBottom: 12 }}>
               <Card.Content>
                 <Text variant="titleMedium">{t('home.sections.active')}</Text>
