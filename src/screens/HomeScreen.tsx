@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
-import { Button, Card, Divider, Text } from 'react-native-paper';
+import { Button, Card, Divider, Text, useTheme } from 'react-native-paper';
 
 import HabitCard from '../ui/components/HabitCard';
 import AnimatedFab from '../ui/components/AnimatedFab';
@@ -11,6 +11,7 @@ import { isHabitActiveNow, isHabitScheduledToday, isTimeReached } from '../utils
 
 export default function HomeScreen({ navigation }: any) {
   const { habits, hydrated, hydrate, toggleToday, removeHabit } = useHabitsStore();
+  const theme = useTheme();
 
   useEffect(() => {
     hydrate();
@@ -52,33 +53,66 @@ export default function HomeScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1 }}>
       <Animated.ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 120 }}
+        contentContainerStyle={{
+          padding: 16,
+          paddingBottom: 120,
+          flexGrow: 1,
+          justifyContent: habits.length === 0 ? 'center' : 'flex-start'
+        }}
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
         {!hydrated ? (
-          <Text>{t('common.loading')}</Text>
+          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
+            <Text style={{ textAlign: 'center', fontSize: 16 }}>{t('common.loading')}</Text>
+          </View>
         ) : habits.length === 0 ? (
-          <Text>{t('home.empty')}</Text>
+          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, paddingHorizontal: 32 }}>
+            <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 24 }}>{t('home.empty')}</Text>
+            <Button
+              mode="contained"
+              icon="plus"
+              onPress={() => navigation.navigate('AddHabit')}
+              style={{ marginTop: 8 }}
+            >
+              {t('home.add_habit')}
+            </Button>
+          </View>
         ) : (
           <>
-            <Button
-              mode="contained-tonal"
-              icon="flash"
-              style={{ marginBottom: 12 }}
-              onPress={() => navigation.navigate('UrgentMotivation')}
-            >
-              {t('home.urgent_motivation')}
-            </Button>
-
-            <Card style={{ marginBottom: 12 }}>
-              <Card.Content>
-                <Text variant="titleMedium">{t('home.sections.active')}</Text>
-                <Text variant="bodySmall">
-                  {t('home.sections.active_hint')}
+            {/* Header Section */}
+            <View style={{
+              backgroundColor: theme.colors.surfaceVariant,
+              marginHorizontal: -16,
+              marginTop: -16,
+              paddingVertical: 32,
+              paddingHorizontal: 24,
+              marginBottom: 24,
+              borderBottomWidth: 1,
+              borderBottomColor: theme.colors.outline,
+            }}>
+              <View style={{
+                borderTopWidth: 1,
+                borderTopColor: theme.colors.outline,
+                paddingTop: 24,
+              }}>
+                <Text variant="headlineMedium" style={{
+                  fontWeight: '600',
+                  marginBottom: 8,
+                  textAlign: 'center',
+                  letterSpacing: 0.5
+                }}>
+                  Tu Progreso Diario
                 </Text>
-              </Card.Content>
-            </Card>
+                <Text variant="bodyMedium" style={{
+                  textAlign: 'center',
+                  opacity: 0.7,
+                  lineHeight: 22
+                }}>
+                  Cada pequeño paso cuenta hacia tu mejor versión
+                </Text>
+              </View>
+            </View>
 
             {active.length === 0 ? (
               <Text style={{ marginBottom: 12 }}>{t('home.no_active')}</Text>
@@ -134,11 +168,23 @@ export default function HomeScreen({ navigation }: any) {
         )}
       </Animated.ScrollView>
 
+      <View style={{ position: 'absolute', right: 16, bottom: 88 }}>
+        <AnimatedFab
+          expanded={fabExpanded}
+          label={t('home.urgent_motivation')}
+          onPress={() => navigation.navigate('UrgentMotivation')}
+          icon="flash"
+          iconOnly={true}
+          backgroundColor={theme.colors.error}
+        />
+      </View>
+
       <View style={{ position: 'absolute', right: 16, bottom: 16 }}>
         <AnimatedFab
           expanded={fabExpanded}
           label={t('home.add_habit')}
           onPress={() => navigation.navigate('AddHabit')}
+          icon="plus"
         />
       </View>
     </View>

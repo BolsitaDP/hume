@@ -70,7 +70,7 @@ export const es = {
     empty: 'A�n no tienes items. Agrega tu primer link.',
     open: 'Abrir',
     open_external: 'Abrir afuera',
-    delete: 'Eliminar',
+    delete: 'Eliminar', delete_confirm_message: '�Seguro que deseas eliminar este elemento?',
     url: 'URL',
     title_optional: 'T�tulo (opcional)',
     save: 'Guardar',

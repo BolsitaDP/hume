@@ -1,14 +1,17 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, View } from 'react-native';
-import { IconButton, Text, useTheme } from 'react-native-paper';
+import { Animated, StyleSheet, TouchableOpacity } from 'react-native';
+import { Icon, Text, useTheme } from 'react-native-paper';
 
 type Props = {
   expanded: boolean;
   label: string;
   onPress: () => void;
+  icon?: string;
+  iconOnly?: boolean;
+  backgroundColor?: string;
 };
 
-export default function AnimatedFab({ expanded, label, onPress }: Props) {
+export default function AnimatedFab({ expanded, label, onPress, icon = 'plus', iconOnly = false, backgroundColor }: Props) {
   const theme = useTheme();
   const anim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
 
@@ -20,7 +23,7 @@ export default function AnimatedFab({ expanded, label, onPress }: Props) {
     }).start();
   }, [ expanded, anim ]);
 
-  const width = anim.interpolate({
+  const width = iconOnly ? 56 : anim.interpolate({
     inputRange: [ 0, 1 ],
     outputRange: [ 56, 168 ], // colapsado -> extendido
   });
@@ -41,35 +44,35 @@ export default function AnimatedFab({ expanded, label, onPress }: Props) {
         styles.container,
         {
           width,
-          backgroundColor: theme.colors.primary,
+          backgroundColor: backgroundColor || theme.colors.primary,
         },
       ]}
     >
-      <View style={styles.inner}>
-        <IconButton
-          icon="plus"
-          iconColor={theme.colors.onPrimary}
+      <TouchableOpacity onPress={onPress} style={styles.inner}>
+        <Icon
+          source={icon}
+          color={theme.colors.onPrimary}
           size={24}
-          onPress={onPress}
-          style={{ margin: 0 }}
         />
 
-        <Animated.View
-          style={{
-            opacity: labelOpacity,
-            transform: [ { translateX: labelTranslateX } ],
-            marginLeft: 2,
-          }}
-        >
-          <Text
-            variant="labelLarge"
-            style={{ color: theme.colors.onPrimary }}
-            numberOfLines={1}
+        {!iconOnly && (
+          <Animated.View
+            style={{
+              opacity: labelOpacity,
+              transform: [ { translateX: labelTranslateX } ],
+              marginLeft: 2,
+            }}
           >
-            {label}
-          </Text>
-        </Animated.View>
-      </View>
+            <Text
+              variant="labelLarge"
+              style={{ color: theme.colors.onPrimary }}
+              numberOfLines={1}
+            >
+              {label}
+            </Text>
+          </Animated.View>
+        )}
+      </TouchableOpacity>
     </Animated.View>
   );
 }
@@ -84,6 +87,8 @@ const styles = StyleSheet.create({
   inner: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    flex: 1,
   },
 });

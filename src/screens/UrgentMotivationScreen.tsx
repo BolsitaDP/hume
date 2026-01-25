@@ -1,19 +1,23 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
-import { Button, Card, Dialog, IconButton, Portal, SegmentedButtons, Text, TextInput } from 'react-native-paper';
+import { Button, Card, Dialog, IconButton, Portal, SegmentedButtons, Text, TextInput, useTheme } from 'react-native-paper';
 
 import { t } from '../i18n';
 import { useMotivationStore, MotivationItem } from '../store/motivation.store';
 import MotivationPlayer from '../ui/components/MotivationPlayer';
 
 export default function UrgentMotivationScreen({ navigation }: any) {
+  const theme = useTheme();
   const { items, hydrated, hydrate, removeItem, getRandomItem, updateTitle } = useMotivationStore();
-  const [filter, setFilter] = useState<'all' | 'videos' | 'images' | 'audio'>('all');
-  const [current, setCurrent] = useState<MotivationItem | null>(null);
+  const [ filter, setFilter ] = useState<'all' | 'videos' | 'images' | 'audio'>('all');
+  const [ current, setCurrent ] = useState<MotivationItem | null>(null);
 
-  const [editVisible, setEditVisible] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
-  const [editValue, setEditValue] = useState('');
+  const [ editVisible, setEditVisible ] = useState(false);
+  const [ editId, setEditId ] = useState<string | null>(null);
+  const [ editValue, setEditValue ] = useState('');
+
+  const [ confirmVisible, setConfirmVisible ] = useState(false);
+  const [ confirmId, setConfirmId ] = useState<string | null>(null);
 
   function startEdit(item: MotivationItem) {
     setEditId(item.id);
@@ -28,14 +32,27 @@ export default function UrgentMotivationScreen({ navigation }: any) {
     setEditId(null);
   }
 
-  useEffect(() => { hydrate(); }, [hydrate]);
+  function confirmDelete(id: string) {
+    setConfirmId(id);
+    setConfirmVisible(true);
+  }
+
+  async function handleConfirmDelete() {
+    if (confirmId) {
+      await removeItem(confirmId);
+    }
+    setConfirmVisible(false);
+    setConfirmId(null);
+  }
+
+  useEffect(() => { hydrate(); }, [ hydrate ]);
 
   const filtered = useMemo(() => {
     if (filter === 'all') return items;
     if (filter === 'images') return items.filter((i) => i.kind === 'image');
     if (filter === 'audio') return items.filter((i) => i.kind === 'audio');
     return items.filter((i) => i.kind === 'youtube' || i.kind === 'tiktok');
-  }, [items, filter]);
+  }, [ items, filter ]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -95,12 +112,22 @@ export default function UrgentMotivationScreen({ navigation }: any) {
               right={() => (
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                   <IconButton icon="pencil" onPress={() => startEdit(item)} />
-                  <IconButton icon="delete-outline" onPress={() => removeItem(item.id)} />
+
                 </View>
               )}
             />
             <Card.Actions>
-              <Button onPress={() => setCurrent(item)}>{t('motivation.open')}</Button>
+              <Button
+                mode="contained"
+                icon="delete"
+                buttonColor={theme.colors.error}
+                textColor="#FFFFFF"
+                onPress={() => confirmDelete(item.id)}
+              >
+                {t('motivation.delete')}
+              </Button>
+              <View style={{ flex: 1 }} />
+              <Button mode="contained-tonal" onPress={() => setCurrent(item)}>{t('motivation.open')}</Button>
             </Card.Actions>
           </Card>
         )}
@@ -121,6 +148,17 @@ export default function UrgentMotivationScreen({ navigation }: any) {
           <Dialog.Actions>
             <Button onPress={() => setEditVisible(false)}>{t('common.cancel')}</Button>
             <Button onPress={commitEdit}>{t('motivation.save')}</Button>
+          </Dialog.Actions>
+        </Dialog>
+
+        <Dialog visible={confirmVisible} onDismiss={() => setConfirmVisible(false)} style={{ borderRadius: 20 }}>
+          <Dialog.Title>{t('motivation.delete')}</Dialog.Title>
+          <Dialog.Content>
+            <Text>{t('motivation.delete_confirm_message') || 'Are you sure you want to delete this item?'}</Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setConfirmVisible(false)}>{t('common.cancel')}</Button>
+            <Button onPress={handleConfirmDelete}>{t('motivation.delete')}</Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>
