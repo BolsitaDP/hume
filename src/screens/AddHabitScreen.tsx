@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Button, Checkbox, List, Text, TextInput, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -18,15 +18,38 @@ import TimePickerField from '../ui/components/TimePickerField';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddHabit'>;
 
-export default function AddHabitScreen({ navigation }: Props) {
-  const addHabit = useHabitsStore((s) => s.addHabit);
+export default function AddHabitScreen({ navigation, route }: Props) {
+  const { habitId } = route.params || {};
+  const { habits, addHabit, updateHabit } = useHabitsStore();
   const { locale, toneLevel, notificationsEnabled } = useSettingsStore();
   const theme = useTheme();
+
+  const habitToEdit = useMemo(() =>
+    habitId ? habits.find(h => h.id === habitId) : null,
+    [ habitId, habits ]
+  );
 
   const [ title, setTitle ] = useState('');
   const [ category, setCategory ] = useState<HabitCategory>('personal');
   const [ days, setDays ] = useState<WeekDay[]>([]);
   const [ time, setTime ] = useState('16:00');
+
+  // Cargar datos del hábito si estamos editando
+  useEffect(() => {
+    if (habitToEdit) {
+      setTitle(habitToEdit.title);
+      setCategory(habitToEdit.category);
+      setDays(habitToEdit.schedule.days);
+      setTime(habitToEdit.schedule.time);
+    }
+  }, [ habitToEdit ]);
+
+  // Actualizar el título de la pantalla
+  useEffect(() => {
+    navigation.setOptions({
+      title: habitId ? t('nav.edit_habit') : t('nav.new_habit')
+    });
+  }, [ habitId, navigation ]);
 
   const categoryOptions = useMemo<{ k: HabitCategory; l: string; icon: string }[]>(
     () => [
@@ -60,30 +83,55 @@ export default function AddHabitScreen({ navigation }: Props) {
   const canCreate = title.trim().length > 0 && days.length > 0;
 
   const onCreate = async () => {
-    const created = await addHabit({
-      title,
-      category,
-      schedule: { days, time },
-    });
+    if (habitId) {
+      // Modo edición
+      await updateHabit(habitId, {
+        title,
+        category,
+        schedule: { days, time },
+      });
 
-    // Si no se creó (validación), no hacemos nada
-    if (!created) return;
-
-    // Agenda notificaciones si están activas
-    if (notificationsEnabled) {
-      const allowed = await ensureNotificationPermission();
-      if (allowed) {
-        await configureAndroidChannel();
-
-        await scheduleHabitNotifications({
-          habit: created,
-          title: t('notifications.title'),
-          body: pickRageMessage(locale, toneLevel),
-        });
+      // Reagendar notificaciones si están activas
+      if (notificationsEnabled && habitToEdit) {
+        const allowed = await ensureNotificationPermission();
+        if (allowed) {
+          await configureAndroidChannel();
+          await scheduleHabitNotifications({
+            habit: { ...habitToEdit, title, category, schedule: { days, time } },
+            title: t('notifications.title'),
+            body: pickRageMessage(locale, toneLevel),
+          });
+        }
       }
-    }
 
-    navigation.goBack();
+      navigation.goBack();
+    } else {
+      // Modo creación
+      const created = await addHabit({
+        title,
+        category,
+        schedule: { days, time },
+      });
+
+      // Si no se creó (validación), no hacemos nada
+      if (!created) return;
+
+      // Agenda notificaciones si están activas
+      if (notificationsEnabled) {
+        const allowed = await ensureNotificationPermission();
+        if (allowed) {
+          await configureAndroidChannel();
+
+          await scheduleHabitNotifications({
+            habit: created,
+            title: t('notifications.title'),
+            body: pickRageMessage(locale, toneLevel),
+          });
+        }
+      }
+
+      navigation.goBack();
+    }
   };
 
   return (
@@ -201,7 +249,7 @@ export default function AddHabitScreen({ navigation }: Props) {
             fontWeight: '600',
           }}
         >
-          {t('add_habit.create')}
+          {habitId ? t('add_habit.update') : t('add_habit.create')}
         </Text>
       </TouchableOpacity>
     </ScrollView>

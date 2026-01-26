@@ -1,4 +1,4 @@
-export const es = {
+﻿export const es = {
   common: {
     app_name: 'humiliateMe',
     save: 'Guardar',
@@ -10,6 +10,7 @@ export const es = {
     all_habits: 'Todos',
     habits: 'Hábitos',
     new_habit: 'Nuevo hábito',
+    edit_habit: 'Editar hábito',
     settings: 'Configuración',
   },
   settings: {
@@ -46,6 +47,7 @@ export const es = {
     category: 'Categoría',
     select_category: 'Selecciona una categoría',
     create: 'Crear',
+    update: 'Actualizar',
     days: 'Días',
     time: 'Hora',
     time_hint: 'Toca para cambiar (temporal)',
@@ -73,7 +75,9 @@ export const es = {
     no_active: 'No hay nada activo ahora.',
     no_upcoming: 'No hay hábitos próximos para hoy.',
     no_other: 'No hay otros hábitos.',
-    urgent_motivation: 'Necesito motivaci�n urgente',
+    urgent_motivation: 'Necesito motivación urgente',
+    mark_complete: 'Marcar',
+    mark_incomplete: 'Desmarcar',
   },
   all_habits: {
     title: 'Todos los hábitos',
@@ -81,18 +85,23 @@ export const es = {
     habit: 'hábito',
     habits: 'hábitos',
   },
+
+  already_marked_title: 'Ya está marcado hoy',
+  already_marked_message: 'Ya marcaste este hábito como hecho hoy.',
+
   motivation: {
-    title: 'Motivaci�n',
+    title: 'Motivación',
     add: 'Agregar link',
     random: 'Aleatorio',
-    empty: 'A�n no tienes items. Agrega tu primer link.',
+    empty: 'Aún no tienes items. Agrega tu primer link.',
     open: 'Abrir',
     open_external: 'Abrir afuera',
-    delete: 'Eliminar', delete_confirm_message: '�Seguro que deseas eliminar este elemento?',
+    delete: 'Eliminar', delete_confirm_message: '¿Seguro que deseas eliminar este elemento?',
     url: 'URL',
-    title_optional: 'T�tulo (opcional)',
+    title_optional: 'Título (opcional)',
     save: 'Guardar',
     detected_kind: 'Detectado: {kind}',
-    kind: {}, edit_title: 'Editar t�tulo',
+    kind: {}, edit_title: 'Editar título',
   },
 };
+

@@ -138,7 +138,7 @@ export default function AllHabitsScreen({ navigation }: any) {
                           key={h.id}
                           habit={h}
                           onToggleToday={() => toggleToday(h.id)}
-                          onDelete={() => removeHabit(h.id)}
+                          onPress={() => navigation.navigate('HabitDetail', { habitId: h.id })}
                         />
                       ))}
                     </View>

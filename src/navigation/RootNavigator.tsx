@@ -10,7 +10,7 @@ import { t } from '../i18n';
 
 export type RootStackParamList = {
   Tabs: undefined;
-  AddHabit: undefined;
+  AddHabit: { habitId?: string };
   HabitDetail: { habitId: string };
   UrgentMotivation: undefined;
   AddMotivationItem: undefined;

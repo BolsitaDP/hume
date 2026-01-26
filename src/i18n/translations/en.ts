@@ -1,4 +1,4 @@
-export const en = {
+﻿export const en = {
   common: {
     app_name: 'Hume',
     save: 'Save',
@@ -10,6 +10,7 @@ export const en = {
     all_habits: 'All',
     habits: 'Habits',
     new_habit: 'New habit',
+    edit_habit: 'Edit habit',
     settings: 'Settings',
   },
   settings: {
@@ -46,6 +47,7 @@ export const en = {
     category: 'Category',
     select_category: 'Select a category',
     create: 'Create',
+    update: 'Update',
     days: 'Days',
     time: 'Time',
     time_hint: 'Tap to change (temporary)',
@@ -74,6 +76,8 @@ export const en = {
     no_upcoming: 'No upcoming habits for today.',
     no_other: 'No other habits.',
     urgent_motivation: 'I need motivation now',
+    mark_complete: 'Mark',
+    mark_incomplete: 'Unmark',
   },
   all_habits: {
     title: 'All habits',
@@ -81,6 +85,10 @@ export const en = {
     habit: 'habit',
     habits: 'habits',
   },
+
+  already_marked_title: 'Already done today',
+  already_marked_message: 'You already marked this habit as done today.',
+
   motivation: {
     title: 'Motivation',
     add: 'Add link',
@@ -88,11 +96,14 @@ export const en = {
     empty: 'No items yet. Add your first link.',
     open: 'Open',
     open_external: 'Open externally',
-    delete: 'Delete', delete_confirm_message: 'Are you sure you want to delete this item?',
+    delete: 'Delete',
+    delete_confirm_message: 'Are you sure you want to delete this item?',
     url: 'URL',
     title_optional: 'Title (optional)',
     save: 'Save',
     detected_kind: 'Detected: {kind}',
-    kind: {}, edit_title: 'Edit title',
+    kind: {},
+    edit_title: 'Edit title',
   },
 };
+

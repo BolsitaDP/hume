@@ -10,7 +10,7 @@ import { t } from '../i18n';
 import { isHabitActiveNow, isHabitScheduledToday, isTimeReached } from '../utils/schedule';
 
 export default function HomeScreen({ navigation }: any) {
-  const { habits, hydrated, hydrate, toggleToday, removeHabit } = useHabitsStore();
+  const { habits, hydrated, hydrate, toggleToday } = useHabitsStore();
   const theme = useTheme();
 
   useEffect(() => {
@@ -120,7 +120,7 @@ export default function HomeScreen({ navigation }: any) {
                   key={h.id}
                   habit={h}
                   onToggleToday={() => toggleToday(h.id)}
-                  onDelete={() => removeHabit(h.id)}
+                  onPress={() => navigation.navigate('HabitDetail', { habitId: h.id })}
                 />
               ))
             )}
@@ -139,7 +139,7 @@ export default function HomeScreen({ navigation }: any) {
                   key={h.id}
                   habit={h}
                   onToggleToday={() => toggleToday(h.id)}
-                  onDelete={() => removeHabit(h.id)}
+                  onPress={() => navigation.navigate('HabitDetail', { habitId: h.id })}
                 />
               ))
             )}

@@ -27,6 +27,7 @@ type HabitsState = {
 
   hydrate: () => Promise<void>;
   addHabit: (payload: { title: string; category: HabitCategory; schedule: HabitSchedule }) => Promise<Habit | null>;
+  updateHabit: (habitId: string, payload: { title: string; category: HabitCategory; schedule: HabitSchedule }) => Promise<void>;
   toggleToday: (habitId: string) => Promise<void>;
   removeHabit: (habitId: string) => Promise<void>;
 };
@@ -70,6 +71,31 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
     return newHabit;
   },
 
+  updateHabit: async (habitId, { title, category, schedule }) => {
+    const trimmed = title.trim();
+    if (!trimmed) return;
+    if (!schedule.days?.length) return;
+
+    const next = get().habits.map((h) => {
+      if (h.id !== habitId) return h;
+      return {
+        ...h,
+        title: trimmed,
+        category,
+        schedule: {
+          days: schedule.days,
+          time: schedule.time,
+        },
+      };
+    });
+
+    set({ habits: next });
+    await saveJSON(STORAGE_KEY, next);
+
+    // Actualizar notificaciones si es necesario
+    await cancelNotificationsByTag(`habit-${habitId}`);
+  },
+
   toggleToday: async (habitId) => {
     const key = todayKey();
     const next = get().habits.map((h) => {
@@ -85,8 +111,13 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
       };
     });
 
+    // Actualizar el estado inmediatamente de forma síncrona
     set({ habits: next });
-    await saveJSON(STORAGE_KEY, next);
+
+    // Guardar en segundo plano sin bloquear
+    saveJSON(STORAGE_KEY, next).catch(err => {
+      console.error('Error saving habit completions:', err);
+    });
   },
 
   removeHabit: async (habitId) => {
