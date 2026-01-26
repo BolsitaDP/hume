@@ -6,6 +6,8 @@ export const en = {
     loading: 'Loading...',
   },
   nav: {
+    today: 'Today',
+    all_habits: 'All',
     habits: 'Habits',
     new_habit: 'New habit',
     settings: 'Settings',
@@ -41,11 +43,21 @@ export const en = {
   },
   add_habit: {
     habit_name: 'Habit name',
+    category: 'Category',
+    select_category: 'Select a category',
     create: 'Create',
     days: 'Days',
     time: 'Time',
     time_hint: 'Tap to change (temporary)',
     validation: 'Pick at least 1 day and a name.',
+  },
+  categories: {
+    study: 'Study',
+    exercise: 'Exercise',
+    health: 'Health',
+    work: 'Work',
+    personal: 'Personal',
+    discipline: 'Discipline',
   },
   home: {
     add_habit: 'Add habit',
@@ -62,6 +74,12 @@ export const en = {
     no_upcoming: 'No upcoming habits for today.',
     no_other: 'No other habits.',
     urgent_motivation: 'I need motivation now',
+  },
+  all_habits: {
+    title: 'All habits',
+    empty: 'No habits yet. Create your first one.',
+    habit: 'habit',
+    habits: 'habits',
   },
   motivation: {
     title: 'Motivation',

@@ -3,6 +3,7 @@ import { Card, Checkbox, IconButton, Text } from 'react-native-paper';
 import { View } from 'react-native';
 import { Habit } from '../../store/habits.store';
 import { todayKey } from '../../utils/date';
+import { getCategoryColor } from '../../utils/categoryColors';
 import { t } from '../../i18n';
 import { formatScheduleLabel } from '../../utils/schedule';
 
@@ -16,8 +17,10 @@ export default function HabitCard({ habit, onToggleToday, onDelete }: Props) {
   const doneToday = !!habit.completions[ todayKey() ];
   const scheduleLabel = formatScheduleLabel(habit.schedule.days, habit.schedule.time);
 
+  const categoryColor = getCategoryColor(habit.category);
+
   return (
-    <Card style={{ marginBottom: 12 }}>
+    <Card style={{ marginBottom: 12, backgroundColor: categoryColor, borderLeftWidth: 4, borderLeftColor: categoryColor }}>
       <Card.Content>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Checkbox status={doneToday ? 'checked' : 'unchecked'} onPress={onToggleToday} />

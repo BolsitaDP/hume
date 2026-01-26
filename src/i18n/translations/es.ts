@@ -6,6 +6,8 @@ export const es = {
     loading: 'Cargando...',
   },
   nav: {
+    today: 'Hoy',
+    all_habits: 'Todos',
     habits: 'Hábitos',
     new_habit: 'Nuevo hábito',
     settings: 'Configuración',
@@ -41,11 +43,21 @@ export const es = {
   },
   add_habit: {
     habit_name: 'Nombre del hábito',
+    category: 'Categoría',
+    select_category: 'Selecciona una categoría',
     create: 'Crear',
     days: 'Días',
     time: 'Hora',
     time_hint: 'Toca para cambiar (temporal)',
     validation: 'Elige al menos 1 día y un nombre.',
+  },
+  categories: {
+    study: 'Estudio',
+    exercise: 'Ejercicio',
+    health: 'Salud',
+    work: 'Trabajo',
+    personal: 'Personal',
+    discipline: 'Disciplina',
   },
   home: {
     add_habit: 'Agregar hábito',
@@ -62,6 +74,12 @@ export const es = {
     no_upcoming: 'No hay hábitos próximos para hoy.',
     no_other: 'No hay otros hábitos.',
     urgent_motivation: 'Necesito motivaci�n urgente',
+  },
+  all_habits: {
+    title: 'Todos los hábitos',
+    empty: 'Aún no tienes hábitos. Crea el primero.',
+    habit: 'hábito',
+    habits: 'hábitos',
   },
   motivation: {
     title: 'Motivaci�n',

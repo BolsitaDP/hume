@@ -5,6 +5,8 @@ import { cancelNotificationsByTag } from '../services/notifications';
 
 export type WeekDay = 'mon' | 'tue' | 'wed' | 'thu' | 'fri' | 'sat' | 'sun';
 
+export type HabitCategory = 'study' | 'exercise' | 'health' | 'work' | 'personal' | 'discipline';
+
 export type HabitSchedule = {
   days: WeekDay[]; // e.g. ['tue']
   time: string; // '16:00'
@@ -13,6 +15,7 @@ export type HabitSchedule = {
 export type Habit = {
   id: string;
   title: string;
+  category: HabitCategory;
   createdAt: number;
   schedule: HabitSchedule;
   completions: Record<string, boolean>; // YYYY-MM-DD -> true
@@ -23,7 +26,7 @@ type HabitsState = {
   hydrated: boolean;
 
   hydrate: () => Promise<void>;
-  addHabit: (payload: { title: string; schedule: HabitSchedule }) => Promise<Habit | null>;
+  addHabit: (payload: { title: string; category: HabitCategory; schedule: HabitSchedule }) => Promise<Habit | null>;
   toggleToday: (habitId: string) => Promise<void>;
   removeHabit: (habitId: string) => Promise<void>;
 };
@@ -43,7 +46,7 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
     set({ habits: data ?? [], hydrated: true });
   },
 
-  addHabit: async ({ title, schedule }) => {
+  addHabit: async ({ title, category, schedule }) => {
     const trimmed = title.trim();
     if (!trimmed) return null;
     if (!schedule.days?.length) return null;
@@ -51,6 +54,7 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
     const newHabit: Habit = {
       id: uid(),
       title: trimmed,
+      category,
       createdAt: Date.now(),
       schedule: {
         days: schedule.days,

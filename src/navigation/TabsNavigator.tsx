@@ -3,12 +3,14 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import HomeScreen from '../screens/HomeScreen';
+import AllHabitsScreen from '../screens/AllHabitsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import { t } from '../i18n';
 import { useTheme } from 'react-native-paper';
 
 export type TabsParamList = {
   HomeTab: undefined;
+  AllHabitsTab: undefined;
   SettingsTab: undefined;
 };
 
@@ -24,9 +26,20 @@ export default function TabsNavigator() {
         name="HomeTab"
         component={HomeScreen}
         options={{
-          title: t('nav.habits'),
+          title: t('nav.today'),
           tabBarIcon: ({ size, color }) => (
-            <MaterialCommunityIcons name="checkbox-marked-circle-outline" size={size} color={color} />
+            <MaterialCommunityIcons name="calendar-today" size={size} color={color} />
+          ),
+        }}
+      />
+
+      <Tab.Screen
+        name="AllHabitsTab"
+        component={AllHabitsScreen}
+        options={{
+          title: t('nav.all_habits'),
+          tabBarIcon: ({ size, color }) => (
+            <MaterialCommunityIcons name="format-list-checkbox" size={size} color={color} />
           ),
         }}
       />

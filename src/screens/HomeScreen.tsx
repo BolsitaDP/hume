@@ -17,7 +17,7 @@ export default function HomeScreen({ navigation }: any) {
     hydrate();
   }, [ hydrate ]);
 
-  const { active, upcoming, inactiveToday } = useMemo(() => {
+  const { active, upcoming } = useMemo(() => {
     const now = new Date();
 
     const activeHabits = habits.filter((h) =>
@@ -28,9 +28,7 @@ export default function HomeScreen({ navigation }: any) {
       isHabitScheduledToday(h.schedule.days, now) && !isTimeReached(h.schedule.time, now)
     );
 
-    const inactive = habits.filter((h) => !isHabitScheduledToday(h.schedule.days, now));
-
-    return { active: activeHabits, upcoming: upcomingHabits, inactiveToday: inactive };
+    return { active: activeHabits, upcoming: upcomingHabits };
   }, [ habits ]);
 
   // FAB shrink/expand
@@ -146,24 +144,6 @@ export default function HomeScreen({ navigation }: any) {
               ))
             )}
 
-            <Divider style={{ marginVertical: 12 }} />
-
-            <Text variant="titleMedium" style={{ marginBottom: 8 }}>
-              {t('home.sections.other')}
-            </Text>
-
-            {inactiveToday.length === 0 ? (
-              <Text>{t('home.no_other')}</Text>
-            ) : (
-              inactiveToday.map((h) => (
-                <HabitCard
-                  key={h.id}
-                  habit={h}
-                  onToggleToday={() => toggleToday(h.id)}
-                  onDelete={() => removeHabit(h.id)}
-                />
-              ))
-            )}
           </>
         )}
       </Animated.ScrollView>
