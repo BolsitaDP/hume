@@ -19,6 +19,18 @@
     notification_time: 'Daily reminder time',
     enable_notifications: 'Enable notifications',
   },
+  welcome: {
+    title: 'Welcome to Hume',
+    subtitle: 'Choose your tone level to get started',
+    continue: 'Continue',
+    examples_label: 'Example:',
+    examples: {
+      level0: '"Remember to stay hydrated!"',
+      level1: '"Hey, don\'t forget to drink water, lazy."',
+      level2: '"Drink water or regret it later."',
+      level3: '"DRINK WATER NOW OR FACE THE CONSEQUENCES!"',
+    },
+  },
   language: {
     en: 'English',
     es: 'Spanish',

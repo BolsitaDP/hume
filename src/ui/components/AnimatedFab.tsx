@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, TouchableOpacity } from 'react-native';
+import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Icon, Text, useTheme } from 'react-native-paper';
 
 type Props = {
@@ -38,6 +38,7 @@ export default function AnimatedFab({ expanded, label, onPress, icon = 'plus', i
     outputRange: [ -8, 0 ],
   });
 
+
   return (
     <Animated.View
       style={[
@@ -49,19 +50,22 @@ export default function AnimatedFab({ expanded, label, onPress, icon = 'plus', i
       ]}
     >
       <TouchableOpacity onPress={onPress} style={styles.inner}>
-        <Icon
-          source={icon}
-          color={theme.colors.onPrimary}
-          size={24}
-        />
+        <View style={styles.iconSlot}>
+          <Icon
+            source={icon}
+            color={theme.colors.onPrimary}
+            size={24}
+          />
+        </View>
 
         {!iconOnly && (
           <Animated.View
             style={{
               opacity: labelOpacity,
               transform: [ { translateX: labelTranslateX } ],
-              marginLeft: 2,
+              paddingRight: 16,
             }}
+            pointerEvents={expanded ? 'auto' : 'none'}
           >
             <Text
               variant="labelLarge"
@@ -87,8 +91,13 @@ const styles = StyleSheet.create({
   inner: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
+    justifyContent: 'flex-start',
     flex: 1,
+  },
+  iconSlot: {
+    width: 56,
+    height: 56,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

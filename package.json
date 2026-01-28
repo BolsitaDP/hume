@@ -33,7 +33,8 @@
     "react-native-screens": "~4.16.0",
     "react-native-vector-icons": "^10.3.0",
     "react-native-webview": "13.15.0",
-    "zustand": "^5.0.9"
+    "zustand": "^5.0.9",
+    "@react-native-community/slider": "5.0.1"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",

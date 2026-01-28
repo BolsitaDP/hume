@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { List, RadioButton, Switch, Text } from 'react-native-paper';
+import { List, Menu, Switch, Text } from 'react-native-paper';
 import { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { TabsParamList } from '../navigation/TabsNavigator';
 import { t } from '../i18n';
@@ -21,6 +21,9 @@ export default function SettingsScreen({ }: Props) {
     setNotificationsEnabled,
     setNotificationTime,
   } = useSettingsStore();
+
+  const [ languageMenuVisible, setLanguageMenuVisible ] = useState(false);
+  const [ toneMenuVisible, setToneMenuVisible ] = useState(false);
 
   // Reprograma noti cada vez que cambien settings relevantes
   useEffect(() => {
@@ -46,20 +49,40 @@ export default function SettingsScreen({ }: Props) {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
-      <List.Section title={t('settings.language')}>
-        <RadioButton.Group value={locale} onValueChange={(v) => setLocale(v as any)}>
-          <RadioButton.Item label={t('language.en')} value="en" />
-          <RadioButton.Item label={t('language.es')} value="es" />
-        </RadioButton.Group>
+      <List.Section>
+        <Menu
+          visible={languageMenuVisible}
+          onDismiss={() => setLanguageMenuVisible(false)}
+          anchor={
+            <List.Item
+              title={t('settings.language')}
+              description={locale === 'en' ? t('language.en') : t('language.es')}
+              onPress={() => setLanguageMenuVisible(true)}
+            />
+          }
+        >
+          <Menu.Item onPress={() => { setLocale('en'); setLanguageMenuVisible(false); }} title={t('language.en')} />
+          <Menu.Item onPress={() => { setLocale('es'); setLanguageMenuVisible(false); }} title={t('language.es')} />
+        </Menu>
       </List.Section>
 
-      <List.Section title={t('settings.tone_level')}>
-        <RadioButton.Group value={String(toneLevel)} onValueChange={(v) => setToneLevel(Number(v) as any)}>
-          <RadioButton.Item label={t('tone.level0')} value="0" />
-          <RadioButton.Item label={t('tone.level1')} value="1" />
-          <RadioButton.Item label={t('tone.level2')} value="2" />
-          <RadioButton.Item label={t('tone.level3')} value="3" />
-        </RadioButton.Group>
+      <List.Section>
+        <Menu
+          visible={toneMenuVisible}
+          onDismiss={() => setToneMenuVisible(false)}
+          anchor={
+            <List.Item
+              title={t('settings.tone_level')}
+              description={t(`tone.level${toneLevel}`)}
+              onPress={() => setToneMenuVisible(true)}
+            />
+          }
+        >
+          <Menu.Item onPress={() => { setToneLevel(0); setToneMenuVisible(false); }} title={t('tone.level0')} />
+          <Menu.Item onPress={() => { setToneLevel(1); setToneMenuVisible(false); }} title={t('tone.level1')} />
+          <Menu.Item onPress={() => { setToneLevel(2); setToneMenuVisible(false); }} title={t('tone.level2')} />
+          <Menu.Item onPress={() => { setToneLevel(3); setToneMenuVisible(false); }} title={t('tone.level3')} />
+        </Menu>
       </List.Section>
 
       <List.Section>

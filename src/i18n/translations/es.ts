@@ -19,6 +19,18 @@
     notification_time: 'Hora del recordatorio',
     enable_notifications: 'Activar notificaciones',
   },
+  welcome: {
+    title: 'Bienvenido a Hume',
+    subtitle: 'Elige tu nivel de tono para comenzar',
+    continue: 'Continuar',
+    examples_label: 'Ejemplo:',
+    examples: {
+      level0: '"¡Recuerda hidratarte!"',
+      level1: '"Oye, no olvides beber agua, vago."',
+      level2: '"Bebe agua o arrepiéntete después."',
+      level3: '"¡BEBE AGUA AHORA O ENFRENTA LAS CONSECUENCIAS!"',
+    },
+  },
   language: {
     en: 'Inglés',
     es: 'Español',
