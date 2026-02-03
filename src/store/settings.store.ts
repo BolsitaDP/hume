@@ -1,8 +1,9 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { loadJSON, saveJSON } from '../services/storage';
 import { AppLocale, getDeviceLocale, setI18nLocale } from '../i18n';
 
 type SettingsState = {
+  themeMode: 'system' | 'light' | 'dark';
   hydrated: boolean;
   locale: AppLocale;
   toneLevel: 0 | 1 | 2 | 3;
@@ -11,6 +12,8 @@ type SettingsState = {
   notificationsEnabled: boolean;
   // HH:mm (24h)
   notificationTime: string;
+
+  setThemeMode: (mode: 'system' | 'light' | 'dark') => Promise<void>;
 
   hydrate: () => Promise<void>;
   setLocale: (locale: AppLocale) => Promise<void>;
@@ -24,6 +27,7 @@ const STORAGE_KEY = '@humiliateMe/settings_v1';
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   hydrated: false,
+  themeMode: 'system',
   locale: getDeviceLocale(),
   toneLevel: 1,
   hasSeenWelcome: false,
@@ -34,11 +38,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const saved = await loadJSON<Partial<SettingsState>>(STORAGE_KEY);
     const locale = (saved?.locale as any) ?? get().locale;
     const hasSeenWelcome = saved?.hasSeenWelcome ?? false;
+    const themeMode = (saved as any)?.themeMode ?? 'system';
 
     set({
       ...saved,
       locale,
       hasSeenWelcome,
+      themeMode,
       hydrated: true,
     });
 
@@ -70,4 +76,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     set({ notificationTime });
     await saveJSON(STORAGE_KEY, { ...get(), notificationTime });
   },
+
+  setThemeMode: async (themeMode) => {
+    set({ themeMode });
+    await saveJSON(STORAGE_KEY, { ...get(), themeMode });
+  },
 }));
+
+

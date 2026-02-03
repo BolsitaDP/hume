@@ -18,7 +18,7 @@ export default function HabitCard({ habit, onToggleToday, onPress }: Props) {
   const scheduleLabel = formatScheduleLabel(habit.schedule.days, habit.schedule.time);
   const theme = useTheme();
 
-  const categoryColor = getCategoryColor(habit.category);
+  const categoryColor = getCategoryColor(habit.category, theme as any);
 
   return (
     <Card style={{ marginBottom: 12, backgroundColor: categoryColor, borderLeftWidth: 4, borderLeftColor: categoryColor }}>
@@ -56,8 +56,8 @@ export default function HabitCard({ habit, onToggleToday, onPress }: Props) {
               }
             }}
             style={{ marginLeft: 8 }}
-            containerColor={doneToday ? '#4CAF50' : theme.colors.primary}
-            iconColor="#fff"
+            containerColor={doneToday ? theme.colors.success : theme.colors.primary}
+            iconColor={doneToday ? theme.colors.onSuccess : theme.colors.onPrimary}
             accessibilityLabel={doneToday ? t('habit_detail.completed_today') : t('habit_detail.mark_complete')}
           />
         </View>
@@ -65,3 +65,7 @@ export default function HabitCard({ habit, onToggleToday, onPress }: Props) {
     </Card>
   );
 }
+
+
+
+

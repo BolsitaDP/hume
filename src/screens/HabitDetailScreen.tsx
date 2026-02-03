@@ -35,7 +35,7 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
     );
   }
 
-  const categoryColor = getCategoryColor(habit.category);
+  const categoryColor = getCategoryColor(habit.category, theme as any);
   const scheduleLabel = formatScheduleLabel(habit.schedule.days, habit.schedule.time);
 
   // Check if completed today
@@ -137,7 +137,7 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
                   icon="pencil"
                   size={20}
                   onPress={handleEdit}
-                  iconColor="#555"
+                  iconColor={theme.dark ? '#CCC' : '#555'}
                   style={{ margin: 0 }}
                 />
               </View>
@@ -152,7 +152,7 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
               icon="delete"
               size={24}
               onPress={handleDelete}
-              iconColor="#D32F2F"
+              iconColor={theme.colors.error}
             />
           </View>
 
@@ -163,8 +163,8 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
               mode="contained"
               onPress={handleToggleToday}
               style={{ borderRadius: 20 }}
-              buttonColor={isCompletedToday ? '#D32F2F' : theme.colors.primary}
-              textColor="#fff"
+              buttonColor={isCompletedToday ? theme.colors.error : theme.colors.primary}
+              textColor={isCompletedToday ? theme.colors.onError : theme.colors.onPrimary}
             >
               {isCompletedToday ? t('habit_detail.mark_incomplete') : t('habit_detail.mark_complete')}
             </Button>
@@ -224,7 +224,7 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
             <MaterialCommunityIcons
               name="fire"
               size={32}
-              color="#FF6B6B"
+              color={theme.colors.primary}
             />
             <Text variant="displaySmall" style={{ fontWeight: '700', marginTop: 8 }}>
               {currentStreak}
@@ -240,7 +240,7 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
             <MaterialCommunityIcons
               name="check-circle"
               size={32}
-              color="#4CAF50"
+              color={theme.colors.success}
             />
             <Text variant="displaySmall" style={{ fontWeight: '700', marginTop: 8 }}>
               {totalCompletions}
@@ -341,7 +341,7 @@ function renderCalendar(currentMonth: Date, completions: Record<string, boolean>
                   variant="bodyMedium"
                   style={{
                     fontWeight: dayInfo.isCompleted ? '700' : '400',
-                    color: dayInfo.isCompleted ? '#000' : theme.colors.onSurface,
+                    color: dayInfo.isCompleted ? theme.colors.onSurface : theme.colors.onSurface,
                   }}
                 >
                   {dayInfo.day}
@@ -414,5 +414,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+
+
+
+
 
 

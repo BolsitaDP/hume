@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, View } from 'react-native';
+﻿import React, { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
 import { Text, List, useTheme } from 'react-native-paper';
 
 import HabitCard from '../ui/components/HabitCard';
 import AnimatedFab from '../ui/components/AnimatedFab';
+import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 
 import { useHabitsStore, WeekDay } from '../store/habits.store';
 import { t } from '../i18n';
@@ -51,33 +52,17 @@ export default function AllHabitsScreen({ navigation }: any) {
   }, [ habits ]);
 
   // FAB shrink/expand
-  const scrollY = useRef(new Animated.Value(0)).current;
   const [ fabExpanded, setFabExpanded ] = useState(true);
-
-  const onScroll = useMemo(
-    () =>
-      Animated.event([ { nativeEvent: { contentOffset: { y: scrollY } } } ], {
-        useNativeDriver: true,
-        listener: (e: any) => {
-          const y = e?.nativeEvent?.contentOffset?.y ?? 0;
-          if (y > 60 && fabExpanded) setFabExpanded(false);
-          if (y < 20 && !fabExpanded) setFabExpanded(true);
-        },
-      }),
-    [ fabExpanded, scrollY ]
-  );
 
   return (
     <View style={{ flex: 1 }}>
-      <Animated.ScrollView
-        contentContainerStyle={{
-          padding: 16,
-          paddingBottom: 120,
-          flexGrow: 1,
-          justifyContent: habits.length === 0 ? 'center' : 'flex-start'
+      <FancyHeaderLayout
+        title={`${t('all_habits.title')} (${habits.length})`}
+        isEmpty={habits.length === 0}
+        onScrollY={(y) => {
+          if (y > 60 && fabExpanded) setFabExpanded(false);
+          if (y < 20 && !fabExpanded) setFabExpanded(true);
         }}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
       >
         {!hydrated ? (
           <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
@@ -89,10 +74,6 @@ export default function AllHabitsScreen({ navigation }: any) {
           </View>
         ) : (
           <>
-            <Text variant="titleLarge" style={{ marginBottom: 16, fontWeight: '600' }}>
-              {t('all_habits.title')} ({habits.length})
-            </Text>
-
             {weekDays.map((day) => {
               const dayHabits = habitsByDay[ day ];
               const count = dayHabits.length;
@@ -108,7 +89,7 @@ export default function AllHabitsScreen({ navigation }: any) {
                     backgroundColor: theme.colors.surfaceVariant,
                     overflow: 'hidden',
                     elevation: 2,
-                    shadowColor: '#000',
+                    shadowColor: theme.colors.shadow,
                     shadowOffset: { width: 0, height: 1 },
                     shadowOpacity: 0.1,
                     shadowRadius: 2,
@@ -148,16 +129,21 @@ export default function AllHabitsScreen({ navigation }: any) {
             })}
           </>
         )}
-      </Animated.ScrollView>
+      </FancyHeaderLayout>
 
-      <View style={{ position: 'absolute', right: 16, bottom: 16 }}>
+            <View style={{ position: 'absolute', right: 16, bottom: 16 }}>
         <AnimatedFab
           expanded={fabExpanded}
           label={t('home.add_habit')}
           onPress={() => navigation.navigate('AddHabit')}
           icon="plus"
+          textColorDark={theme.colors.background}
         />
       </View>
     </View>
   );
 }
+
+
+
+

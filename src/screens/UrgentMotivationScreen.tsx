@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { Button, Card, Dialog, IconButton, Portal, SegmentedButtons, Text, TextInput, useTheme } from 'react-native-paper';
 
@@ -121,7 +121,7 @@ export default function UrgentMotivationScreen({ navigation }: any) {
                 mode="contained"
                 icon="delete"
                 buttonColor={theme.colors.error}
-                textColor="#FFFFFF"
+                textColor={theme.colors.onError}
                 onPress={() => confirmDelete(item.id)}
               >
                 {t('motivation.delete')}
@@ -165,3 +165,4 @@ export default function UrgentMotivationScreen({ navigation }: any) {
     </View>
   );
 }
+

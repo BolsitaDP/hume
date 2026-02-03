@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Icon, Text, useTheme } from 'react-native-paper';
 
@@ -9,9 +9,22 @@ type Props = {
   icon?: string;
   iconOnly?: boolean;
   backgroundColor?: string;
+  textColor?: string;         // override global
+  textColorLight?: string;    // override when theme is light
+  textColorDark?: string;     // override when theme is dark
 };
 
-export default function AnimatedFab({ expanded, label, onPress, icon = 'plus', iconOnly = false, backgroundColor }: Props) {
+export default function AnimatedFab({
+  expanded,
+  label,
+  onPress,
+  icon = 'plus',
+  iconOnly = false,
+  backgroundColor,
+  textColor,
+  textColorLight,
+  textColorDark,
+}: Props) {
   const theme = useTheme();
   const anim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
 
@@ -38,6 +51,16 @@ export default function AnimatedFab({ expanded, label, onPress, icon = 'plus', i
     outputRange: [ -8, 0 ],
   });
 
+  const bg = (backgroundColor ?? (theme as any).colors.primary) as string;
+  const toLower = (s: string) => (s || '').toLowerCase();
+  const colors: any = (theme as any).colors || {};
+  const autoOnColor = (
+    toLower(bg) === toLower(colors.primary) ? colors.onPrimary
+    : toLower(bg) === toLower(colors.error) ? colors.onError
+    : colors.success && toLower(bg) === toLower(colors.success) ? colors.onSuccess
+    : colors.onPrimary
+  );
+  const onColor = textColor ?? ((theme as any).dark ? (textColorDark ?? autoOnColor) : (textColorLight ?? autoOnColor));
 
   return (
     <Animated.View
@@ -45,7 +68,7 @@ export default function AnimatedFab({ expanded, label, onPress, icon = 'plus', i
         styles.container,
         {
           width,
-          backgroundColor: backgroundColor || theme.colors.primary,
+          backgroundColor: bg,
         },
       ]}
     >
@@ -53,7 +76,7 @@ export default function AnimatedFab({ expanded, label, onPress, icon = 'plus', i
         <View style={styles.iconSlot}>
           <Icon
             source={icon}
-            color={theme.colors.onPrimary}
+            color={onColor}
             size={24}
           />
         </View>
@@ -69,7 +92,7 @@ export default function AnimatedFab({ expanded, label, onPress, icon = 'plus', i
           >
             <Text
               variant="labelLarge"
-              style={{ color: theme.colors.onPrimary }}
+              style={{ color: onColor }}
               numberOfLines={1}
             >
               {label}

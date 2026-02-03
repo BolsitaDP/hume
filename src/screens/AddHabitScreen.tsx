@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Button, Checkbox, List, Text, TextInput, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -34,7 +34,7 @@ export default function AddHabitScreen({ navigation, route }: Props) {
   const [ days, setDays ] = useState<WeekDay[]>([]);
   const [ time, setTime ] = useState('16:00');
 
-  // Cargar datos del hábito si estamos editando
+  // Cargar datos del hÃ¡bito si estamos editando
   useEffect(() => {
     if (habitToEdit) {
       setTitle(habitToEdit.title);
@@ -44,7 +44,7 @@ export default function AddHabitScreen({ navigation, route }: Props) {
     }
   }, [ habitToEdit ]);
 
-  // Actualizar el título de la pantalla
+  // Actualizar el tÃ­tulo de la pantalla
   useEffect(() => {
     navigation.setOptions({
       title: habitId ? t('nav.edit_habit') : t('nav.new_habit')
@@ -84,14 +84,14 @@ export default function AddHabitScreen({ navigation, route }: Props) {
 
   const onCreate = async () => {
     if (habitId) {
-      // Modo edición
+      // Modo ediciÃ³n
       await updateHabit(habitId, {
         title,
         category,
         schedule: { days, time },
       });
 
-      // Reagendar notificaciones si están activas
+      // Reagendar notificaciones si estÃ¡n activas
       if (notificationsEnabled && habitToEdit) {
         const allowed = await ensureNotificationPermission();
         if (allowed) {
@@ -106,17 +106,17 @@ export default function AddHabitScreen({ navigation, route }: Props) {
 
       navigation.goBack();
     } else {
-      // Modo creación
+      // Modo creaciÃ³n
       const created = await addHabit({
         title,
         category,
         schedule: { days, time },
       });
 
-      // Si no se creó (validación), no hacemos nada
+      // Si no se creÃ³ (validaciÃ³n), no hacemos nada
       if (!created) return;
 
-      // Agenda notificaciones si están activas
+      // Agenda notificaciones si estÃ¡n activas
       if (notificationsEnabled) {
         const allowed = await ensureNotificationPermission();
         if (allowed) {
@@ -153,8 +153,8 @@ export default function AddHabitScreen({ navigation, route }: Props) {
                 style={[
                   styles.categoryItem,
                   {
-                    backgroundColor: getCategoryColor(cat.k),
-                    borderColor: isSelected ? '#000' : 'transparent',
+                    backgroundColor: getCategoryColor(cat.k, theme as any),
+                    borderColor: isSelected ? theme.colors.onSurface : 'transparent',
                     opacity: isSelected ? 1 : 0.6,
                   }
                 ]}
@@ -164,13 +164,13 @@ export default function AddHabitScreen({ navigation, route }: Props) {
                 <MaterialCommunityIcons
                   name={cat.icon as any}
                   size={28}
-                  color={isSelected ? '#000' : '#555'}
+                  color={isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant}
                 />
                 <Text
                   variant="labelSmall"
                   style={{
                     marginTop: 4,
-                    color: isSelected ? '#000' : '#555',
+                    color: isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant,
                     fontWeight: isSelected ? '600' : '400',
                   }}
                 >
@@ -245,7 +245,7 @@ export default function AddHabitScreen({ navigation, route }: Props) {
         <Text
           variant="titleMedium"
           style={{
-            color: canCreate ? '#fff' : theme.colors.onSurfaceDisabled,
+            color: canCreate ? theme.colors.onPrimary : theme.colors.onSurfaceDisabled,
             fontWeight: '600',
           }}
         >
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     padding: 6,
     borderWidth: 2,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -294,7 +294,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     elevation: 1,
-    shadowColor: '#000',
+    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 1,
@@ -309,3 +309,6 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
 });
+
+
+

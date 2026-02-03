@@ -1,11 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, View } from 'react-native';
+﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { View } from 'react-native';
 import { Button, Card, Divider, Text, useTheme } from 'react-native-paper';
 
 import HabitCard from '../ui/components/HabitCard';
 import AnimatedFab from '../ui/components/AnimatedFab';
-
+import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 import { useHabitsStore } from '../store/habits.store';
+
 import { t } from '../i18n';
 import { isHabitActiveNow, isHabitScheduledToday, isTimeReached } from '../utils/schedule';
 
@@ -32,34 +33,11 @@ export default function HomeScreen({ navigation }: any) {
   }, [ habits ]);
 
   // FAB shrink/expand
-  const scrollY = useRef(new Animated.Value(0)).current;
   const [ fabExpanded, setFabExpanded ] = useState(true);
-
-  const onScroll = useMemo(
-    () =>
-      Animated.event([ { nativeEvent: { contentOffset: { y: scrollY } } } ], {
-        useNativeDriver: true,
-        listener: (e: any) => {
-          const y = e?.nativeEvent?.contentOffset?.y ?? 0;
-          if (y > 60 && fabExpanded) setFabExpanded(false);
-          if (y < 20 && !fabExpanded) setFabExpanded(true);
-        },
-      }),
-    [ fabExpanded, scrollY ]
-  );
 
   return (
     <View style={{ flex: 1 }}>
-      <Animated.ScrollView
-        contentContainerStyle={{
-          padding: 16,
-          paddingBottom: 120,
-          flexGrow: 1,
-          justifyContent: habits.length === 0 ? 'center' : 'flex-start'
-        }}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
-      >
+      <FancyHeaderLayout title="Tu Progreso Diario" subtitle="Cada pequeño paso cuenta hacia tu mejor versión" isEmpty={habits.length === 0} onScrollY={(y) => { if (y > 60 && fabExpanded) setFabExpanded(false); if (y < 20 && !fabExpanded) setFabExpanded(true); }} >
         {!hydrated ? (
           <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
             <Text style={{ textAlign: 'center', fontSize: 16 }}>{t('common.loading')}</Text>
@@ -78,40 +56,6 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         ) : (
           <>
-            {/* Header Section */}
-            <View style={{
-              backgroundColor: theme.colors.surfaceVariant,
-              marginHorizontal: -16,
-              marginTop: -16,
-              paddingVertical: 32,
-              paddingHorizontal: 24,
-              marginBottom: 24,
-              borderBottomWidth: 1,
-              borderBottomColor: theme.colors.outline,
-            }}>
-              <View style={{
-                borderTopWidth: 1,
-                borderTopColor: theme.colors.outline,
-                paddingTop: 24,
-              }}>
-                <Text variant="headlineMedium" style={{
-                  fontWeight: '600',
-                  marginBottom: 8,
-                  textAlign: 'center',
-                  letterSpacing: 0.5
-                }}>
-                  Tu Progreso Diario
-                </Text>
-                <Text variant="bodyMedium" style={{
-                  textAlign: 'center',
-                  opacity: 0.7,
-                  lineHeight: 22
-                }}>
-                  Cada pequeño paso cuenta hacia tu mejor versión
-                </Text>
-              </View>
-            </View>
-
             {active.length === 0 ? (
               <Text style={{ marginBottom: 12 }}>{t('home.no_active')}</Text>
             ) : (
@@ -146,7 +90,7 @@ export default function HomeScreen({ navigation }: any) {
 
           </>
         )}
-      </Animated.ScrollView>
+      </FancyHeaderLayout>
 
       <View style={{ position: 'absolute', right: 16, bottom: 88 }}>
         <AnimatedFab
@@ -155,7 +99,8 @@ export default function HomeScreen({ navigation }: any) {
           onPress={() => navigation.navigate('UrgentMotivation')}
           icon="flash"
           iconOnly={true}
-          backgroundColor={theme.colors.error}
+          backgroundColor={theme.colors.urgent}
+          textColorDark={theme.colors.onUrgent}
         />
       </View>
 
@@ -170,3 +115,17 @@ export default function HomeScreen({ navigation }: any) {
     </View>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

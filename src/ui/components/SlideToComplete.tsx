@@ -1,6 +1,6 @@
-import React from 'react';
+﻿import React from 'react';
 import { StyleSheet } from 'react-native';
-import { Button } from 'react-native-paper';
+import { Button, useTheme } from 'react-native-paper';
 
 interface SlideToCompleteProps {
   onComplete: () => void;
@@ -17,6 +17,7 @@ export default function SlideToComplete({
   completeText,
   completedText,
 }: SlideToCompleteProps) {
+  const theme = useTheme();
   const handlePress = () => {
     if (isCompleted) {
       onUncomplete();
@@ -30,8 +31,8 @@ export default function SlideToComplete({
       mode={isCompleted ? 'contained' : 'outlined'}
       onPress={handlePress}
       style={styles.button}
-      buttonColor={isCompleted ? '#4CAF50' : undefined}
-      textColor={isCompleted ? '#FFFFFF' : undefined}
+      buttonColor={isCompleted ? theme.colors.success : undefined}
+      textColor={isCompleted ? theme.colors.onSuccess : undefined}
       icon={isCompleted ? 'check-circle' : 'circle-outline'}
     >
       {isCompleted ? completedText : completeText}
@@ -44,3 +45,4 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 });
+
