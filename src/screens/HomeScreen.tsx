@@ -37,7 +37,15 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1 }}>
-      <FancyHeaderLayout title="Tu Progreso Diario" subtitle="Cada pequeño paso cuenta hacia tu mejor versión" isEmpty={habits.length === 0} onScrollY={(y) => { if (y > 60 && fabExpanded) setFabExpanded(false); if (y < 20 && !fabExpanded) setFabExpanded(true); }} >
+      <FancyHeaderLayout
+        title={t('home.daily_progress_title')}
+        subtitle={t('home.daily_progress_subtitle')}
+        isEmpty={habits.length === 0}
+        onScrollY={(y) => {
+          if (y > 60 && fabExpanded) setFabExpanded(false);
+          if (y < 20 && !fabExpanded) setFabExpanded(true);
+        }}
+      >
         {!hydrated ? (
           <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
             <Text style={{ textAlign: 'center', fontSize: 16 }}>{t('common.loading')}</Text>
@@ -115,7 +123,6 @@ export default function HomeScreen({ navigation }: any) {
     </View>
   );
 }
-
 
 
 

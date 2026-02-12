@@ -32,25 +32,25 @@ export default function RootNavigator() {
       <Stack.Screen
         name="AddHabit"
         component={AddHabitScreen}
-        options={{ title: t('nav.new_habit') }}
+        options={{ headerShown: false }}
       />
 
       <Stack.Screen
         name="HabitDetail"
         component={HabitDetailScreen}
-        options={{ title: 'Habit' }}
+        options={{ title: t('nav.habit_detail') }}
       />
 
       <Stack.Screen
         name="UrgentMotivation"
         component={UrgentMotivationScreen}
-        options={{ title: t('motivation.title'), presentation: 'modal' }}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
 
       <Stack.Screen
         name="AddMotivationItem"
         component={AddMotivationItemScreen}
-        options={{ title: t('motivation.add'), presentation: 'modal' }}
+        options={{ headerShown: false, presentation: 'modal' }}
       />
     </Stack.Navigator>
   );

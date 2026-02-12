@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Habit } from '../store/habits.store';
 import { WEEKDAY_TO_EXPO } from '../utils/weekday';
+import { HABITS_CHANNEL_ID } from './notifications';
 
 type Params = {
   habit: Habit;
@@ -26,11 +27,11 @@ export async function scheduleHabitNotifications({
         },
       },
       trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
         weekday: WEEKDAY_TO_EXPO[ day ],
         hour,
         minute,
-        repeats: true,
-        channelId: 'habits',
+        channelId: HABITS_CHANNEL_ID,
       },
     });
   }

@@ -5,6 +5,7 @@ import { Button, HelperText, Text, TextInput, Chip } from 'react-native-paper';
 import { t } from '../i18n';
 import { useMotivationStore } from '../store/motivation.store';
 import { detectMotivationKind } from '../utils/motivation';
+import FancyHeaderBackLayout from '../ui/layouts/FancyHeaderBackLayout';
 
 export default function AddMotivationItemScreen({ navigation }: any) {
   const { addItem } = useMotivationStore();
@@ -23,42 +24,47 @@ export default function AddMotivationItemScreen({ navigation }: any) {
     }
     const created = await addItem({ url, title, kind: detected });
     if (!created) {
-      setError('Unsupported URL. Please specify a valid YouTube/TikTok/image/audio link.');
+      setError(t('motivation.unsupported_url'));
       return;
     }
     navigation.goBack();
   }
 
   return (
-    <View style={{ flex: 1, padding: 16 }}>
-      <TextInput
-        mode="outlined"
-        label={t('motivation.url')}
-        value={url}
-        onChangeText={setUrl}
-        autoCapitalize="none"
-        autoCorrect={false}
-      />
+    <View style={{ flex: 1 }}>
+      <FancyHeaderBackLayout
+        title={t('motivation.add')}
+        onBack={() => navigation.goBack()}
+      >
+        <TextInput
+          mode="outlined"
+          label={t('motivation.url')}
+          value={url}
+          onChangeText={setUrl}
+          autoCapitalize="none"
+          autoCorrect={false}
+        />
 
-      <TextInput
-        style={{ marginTop: 12 }}
-        mode="outlined"
-        label={t('motivation.title_optional')}
-        value={title}
-        onChangeText={setTitle}
-      />
+        <TextInput
+          style={{ marginTop: 12 }}
+          mode="outlined"
+          label={t('motivation.title_optional')}
+          value={title}
+          onChangeText={setTitle}
+        />
 
-      {detected && (
-        <Chip style={{ marginTop: 12 }} icon="check">
-          {t('motivation.detected_kind', { kind: t(`motivation.kind.${detected}`) })}
-        </Chip>
-      )}
+        {detected && (
+          <Chip style={{ marginTop: 12 }} icon="check">
+            {t('motivation.detected_kind', { kind: t(`motivation.kind.${detected}`) })}
+          </Chip>
+        )}
 
-      {!!error && <HelperText type="error">{error}</HelperText>}
+        {!!error && <HelperText type="error">{error}</HelperText>}
 
-      <Button style={{ marginTop: 16 }} mode="contained" onPress={onSave}>
-        {t('motivation.save')}
-      </Button>
+        <Button style={{ marginTop: 16 }} mode="contained" onPress={onSave}>
+          {t('motivation.save')}
+        </Button>
+      </FancyHeaderBackLayout>
     </View>
   );
 }

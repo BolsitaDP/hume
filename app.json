@@ -4,11 +4,11 @@
                  "slug":  "hume",
                  "version":  "1.0.0",
                  "orientation":  "portrait",
-                 "icon":  "./assets/icon.png",
+                 "icon":  "./assets/hume_logo.png",
                  "userInterfaceStyle":  "light",
                  "newArchEnabled":  true,
                  "splash":  {
-                                "image":  "./assets/splash-icon.png",
+                                "image":  "./assets/hume_logo.png",
                                 "resizeMode":  "contain",
                                 "backgroundColor":  "#ffffff"
                             },
@@ -17,7 +17,7 @@
                          },
                  "android":  {
                                  "adaptiveIcon":  {
-                                                      "foregroundImage":  "./assets/adaptive-icon.png",
+                                                      "foregroundImage":  "./assets/hume_logo.png",
                                                       "backgroundColor":  "#ffffff"
                                                   },
                                  "edgeToEdgeEnabled":  true,
@@ -38,13 +38,14 @@
                                                    ]
                              },
                  "web":  {
-                             "favicon":  "./assets/favicon.png"
+                             "favicon":  "./assets/hume_logo.png"
                          },
                  "plugins":  [
                                  "expo-localization",
                                  "@react-native-community/datetimepicker",
                                  "expo-web-browser",
-                                 "expo-share-intent"
+                                 "expo-share-intent",
+                                 "expo-notifications"
                              ],
                  "scheme":  "hume"
              }

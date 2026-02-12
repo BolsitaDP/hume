@@ -41,6 +41,7 @@ export const lightTheme: AppTheme = {
     onSuccess: '#FFFFFF',
 
     // Urgent (intense red, same in light/dark)
+    error: '#D32F2F',
     urgent: '#D32F2F',
     onUrgent: '#FFFFFF',
   },
@@ -70,6 +71,7 @@ export const darkTheme: AppTheme = {
     onSuccess: '#FFFFFF',
 
     // Urgent (intense red, same in light/dark)
+    error: '#D32F2F',
     urgent: '#D32F2F',
     onUrgent: '#FFFFFF',
   },

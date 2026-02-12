@@ -203,7 +203,15 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
 
           {/* Day headers */}
           <View style={styles.weekDaysContainer}>
-            {[ 'D', 'L', 'M', 'M', 'J', 'V', 'S' ].map((day, i) => (
+            {[
+              t('week_short.sun'),
+              t('week_short.mon'),
+              t('week_short.tue'),
+              t('week_short.wed'),
+              t('week_short.thu'),
+              t('week_short.fri'),
+              t('week_short.sat'),
+            ].map((day, i) => (
               <View key={i} style={styles.dayHeader}>
                 <Text variant="labelSmall" style={{ fontWeight: '600', opacity: 0.6 }}>
                   {day}

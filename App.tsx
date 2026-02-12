@@ -8,21 +8,22 @@ import RootNavigator from './src/navigation/RootNavigator';
 import ShareIntentHandler from './src/services/ShareIntentHandler';
 import { lightTheme, darkTheme } from './src/ui/theme';
 import { useSettingsStore } from './src/store/settings.store';
-import { setupNotificationHandler } from './src/services/notifications';
+import { configureAndroidChannel, setupNotificationHandler } from './src/services/notifications';
 
 export default function App() {
   const hydrateSettings = useSettingsStore((s) => s.hydrate);
   const hydrated = useSettingsStore((s) => s.hydrated);
   const themeMode = useSettingsStore((s) => s.themeMode);
+  // Keep hook order stable across renders: call useColorScheme before early returns
+  const scheme = useColorScheme();
 
   useEffect(() => {
     setupNotificationHandler();
+    configureAndroidChannel();
     hydrateSettings();
   }, [hydrateSettings]);
 
   if (!hydrated) return null;
-
-  const scheme = useColorScheme();
   const theme = themeMode === 'dark' ? darkTheme : themeMode === 'light' ? lightTheme : (scheme === 'dark' ? darkTheme : lightTheme);
 
   const navBase = (theme as any).dark ? NavDarkTheme : NavDefaultTheme;

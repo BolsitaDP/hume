@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { View, TouchableOpacity, StyleSheet } from 'react-native';
 import { Button, Checkbox, List, Text, TextInput, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -15,6 +15,7 @@ import { ensureNotificationPermission, configureAndroidChannel } from '../servic
 import { scheduleHabitNotifications } from '../services/habitNotifications';
 
 import TimePickerField from '../ui/components/TimePickerField';
+import FancyHeaderBackLayout from '../ui/layouts/FancyHeaderBackLayout';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddHabit'>;
 
@@ -135,124 +136,131 @@ export default function AddHabitScreen({ navigation, route }: Props) {
   };
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
-      <TextInput
-        label={t('add_habit.habit_name')}
-        value={title}
-        onChangeText={setTitle}
-        mode="outlined"
-      />
-
-      <List.Section title={t('add_habit.category')} style={{ marginTop: 16, marginBottom: 0 }}>
-        <View style={styles.categoryContainer}>
-          {categoryOptions.map((cat) => {
-            const isSelected = category === cat.k;
-            return (
-              <TouchableOpacity
-                key={cat.k}
-                style={[
-                  styles.categoryItem,
-                  {
-                    backgroundColor: getCategoryColor(cat.k, theme as any),
-                    borderColor: isSelected ? theme.colors.onSurface : 'transparent',
-                    opacity: isSelected ? 1 : 0.6,
-                  }
-                ]}
-                onPress={() => setCategory(cat.k)}
-                activeOpacity={0.7}
-              >
-                <MaterialCommunityIcons
-                  name={cat.icon as any}
-                  size={28}
-                  color={isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant}
-                />
-                <Text
-                  variant="labelSmall"
-                  style={{
-                    marginTop: 4,
-                    color: isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant,
-                    fontWeight: isSelected ? '600' : '400',
-                  }}
-                >
-                  {cat.l}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </List.Section>
-
-      <List.Section title={t('add_habit.days')} style={{ marginTop: 0, marginBottom: 8 }}>
-        <View style={styles.daysContainer}>
-          {weekOptions.map((d) => {
-            const isSelected = days.includes(d.k);
-            return (
-              <TouchableOpacity
-                key={d.k}
-                style={[
-                  styles.dayItem,
-                  {
-                    backgroundColor: isSelected ? theme.colors.primaryContainer : theme.colors.surface,
-                    borderColor: isSelected ? theme.colors.primary : theme.colors.outlineVariant,
-                  }
-                ]}
-                onPress={() => toggleDay(d.k)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  variant="labelLarge"
-                  style={{
-                    color: isSelected ? theme.colors.primary : theme.colors.onSurfaceVariant,
-                    fontWeight: isSelected ? '700' : '500',
-                    textAlign: 'center',
-                  }}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                >
-                  {d.l}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </List.Section>
-
-      <List.Section>
-        <TimePickerField
-          label={t('add_habit.time')}
-          value={time}
-          onChange={setTime}
-        />
-      </List.Section>
-
-      {!canCreate && (
-        <Text style={{ marginBottom: 8, color: theme.colors.error, textAlign: 'center' }}>
-          {t('add_habit.validation')}
-        </Text>
-      )}
-
-      <TouchableOpacity
-        style={[
-          styles.createButton,
-          {
-            backgroundColor: canCreate ? theme.colors.primary : theme.colors.surfaceDisabled,
-          }
-        ]}
-        onPress={onCreate}
-        disabled={!canCreate}
-        activeOpacity={0.8}
+    <View style={{ flex: 1 }}>
+      <FancyHeaderBackLayout
+        title={habitId ? t('nav.edit_habit') : t('nav.new_habit')}
+        onBack={() => navigation.goBack()}
       >
-        <Text
-          variant="titleMedium"
-          style={{
-            color: canCreate ? theme.colors.onPrimary : theme.colors.onSurfaceDisabled,
-            fontWeight: '600',
-          }}
+        <TextInput
+          label={t('add_habit.habit_name')}
+          value={title}
+          onChangeText={setTitle}
+          mode="outlined"
+        />
+
+        <List.Section title={t('add_habit.category')} style={{ marginTop: 16, marginBottom: 0 }}>
+          <View style={styles.categoryContainer}>
+            {categoryOptions.map((cat) => {
+              const isSelected = category === cat.k;
+              return (
+                <TouchableOpacity
+                  key={cat.k}
+                  style={[
+                    styles.categoryItem,
+                    {
+                      backgroundColor: getCategoryColor(cat.k, theme as any),
+                      borderColor: isSelected ? theme.colors.onSurface : 'transparent',
+                      opacity: isSelected ? 1 : 0.6,
+                      shadowColor: theme.colors.shadow,
+                    }
+                  ]}
+                  onPress={() => setCategory(cat.k)}
+                  activeOpacity={0.7}
+                >
+                  <MaterialCommunityIcons
+                    name={cat.icon as any}
+                    size={28}
+                    color={isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant}
+                  />
+                  <Text
+                    variant="labelSmall"
+                    style={{
+                      marginTop: 4,
+                      color: isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant,
+                      fontWeight: isSelected ? '600' : '400',
+                    }}
+                  >
+                    {cat.l}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </List.Section>
+
+        <List.Section title={t('add_habit.days')} style={{ marginTop: 0, marginBottom: 8 }}>
+          <View style={styles.daysContainer}>
+            {weekOptions.map((d) => {
+              const isSelected = days.includes(d.k);
+              return (
+                <TouchableOpacity
+                  key={d.k}
+                  style={[
+                    styles.dayItem,
+                    {
+                      backgroundColor: isSelected ? theme.colors.primaryContainer : theme.colors.surface,
+                      borderColor: isSelected ? theme.colors.primary : theme.colors.outlineVariant,
+                      shadowColor: theme.colors.shadow,
+                    }
+                  ]}
+                  onPress={() => toggleDay(d.k)}
+                  activeOpacity={0.7}
+                >
+                  <Text
+                    variant="labelLarge"
+                    style={{
+                      color: isSelected ? theme.colors.primary : theme.colors.onSurfaceVariant,
+                      fontWeight: isSelected ? '700' : '500',
+                      textAlign: 'center',
+                    }}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {d.l}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </List.Section>
+
+        <List.Section>
+          <TimePickerField
+            label={t('add_habit.time')}
+            value={time}
+            onChange={setTime}
+          />
+        </List.Section>
+
+        {!canCreate && (
+          <Text style={{ marginBottom: 8, color: theme.colors.error, textAlign: 'center' }}>
+            {t('add_habit.validation')}
+          </Text>
+        )}
+
+        <TouchableOpacity
+          style={[
+            styles.createButton,
+            {
+              backgroundColor: canCreate ? theme.colors.primary : theme.colors.surfaceDisabled,
+            }
+          ]}
+          onPress={onCreate}
+          disabled={!canCreate}
+          activeOpacity={0.8}
         >
-          {habitId ? t('add_habit.update') : t('add_habit.create')}
-        </Text>
-      </TouchableOpacity>
-    </ScrollView>
+          <Text
+            variant="titleMedium"
+            style={{
+              color: canCreate ? theme.colors.onPrimary : theme.colors.onSurfaceDisabled,
+              fontWeight: '600',
+            }}
+          >
+            {habitId ? t('add_habit.update') : t('add_habit.create')}
+          </Text>
+        </TouchableOpacity>
+      </FancyHeaderBackLayout>
+    </View>
   );
 }
 
@@ -272,7 +280,6 @@ const styles = StyleSheet.create({
     padding: 6,
     borderWidth: 2,
     elevation: 2,
-    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -294,7 +301,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     elevation: 1,
-    shadowColor: theme.colors.shadow,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 1,
