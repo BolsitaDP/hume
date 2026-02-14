@@ -1,52 +1,59 @@
 {
-    "expo":  {
-                 "name":  "hume",
-                 "slug":  "hume",
-                 "version":  "1.0.0",
-                 "orientation":  "portrait",
-                 "icon":  "./assets/hume_logo.png",
-                 "userInterfaceStyle":  "light",
-                 "newArchEnabled":  true,
-                 "splash":  {
-                                "image":  "./assets/hume_logo.png",
-                                "resizeMode":  "contain",
-                                "backgroundColor":  "#ffffff"
-                            },
-                 "ios":  {
-                             "supportsTablet":  true
-                         },
-                 "android":  {
-                                 "adaptiveIcon":  {
-                                                      "foregroundImage":  "./assets/hume_logo.png",
-                                                      "backgroundColor":  "#ffffff"
-                                                  },
-                                 "edgeToEdgeEnabled":  true,
-                                 "predictiveBackGestureEnabled":  false,
-                                 "package":  "com.bolsita.hume",
-                                 "intentFilters":  [
-                                                       {
-                                                           "category":  [
-                                                                            "DEFAULT"
-                                                                        ],
-                                                           "data":  [
-                                                                        {
-                                                                            "mimeType":  "text/plain"
-                                                                        }
-                                                                    ],
-                                                           "action":  "SEND"
-                                                       }
-                                                   ]
-                             },
-                 "web":  {
-                             "favicon":  "./assets/hume_logo.png"
-                         },
-                 "plugins":  [
-                                 "expo-localization",
-                                 "@react-native-community/datetimepicker",
-                                 "expo-web-browser",
-                                 "expo-share-intent",
-                                 "expo-notifications"
-                             ],
-                 "scheme":  "hume"
-             }
+  "expo": {
+    "name": "hume",
+    "slug": "hume",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/hume_logo.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/hume_logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/hume_logo.png",
+        "backgroundColor": "#ffffff"
+      },
+      "notification": {
+        "icon": "./assets/hume_logo.png"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.bolsita.hume",
+      "permissions": [
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "intentFilters": [
+        {
+          "category": [
+            "DEFAULT"
+          ],
+          "data": [
+            {
+              "mimeType": "text/plain"
+            }
+          ],
+          "action": "SEND"
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/hume_logo.png"
+    },
+    "plugins": [
+      "expo-localization",
+      "@react-native-community/datetimepicker",
+      "expo-web-browser",
+      "expo-share-intent",
+      "expo-notifications",
+      "expo-audio"
+    ],
+    "scheme": "hume"
+  }
 }

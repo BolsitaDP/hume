@@ -8,6 +8,8 @@ type FancyHeaderBackLayoutProps = {
   subtitle?: string;
   onBack: () => void;
   headerPct?: number;
+  collapsedTitleOffset?: number;
+  collapsedSubtitleOffset?: number;
   contentPadding?: number;
   bottomPadding?: number;
   isEmpty?: boolean;
@@ -21,6 +23,8 @@ export default function FancyHeaderBackLayout({
   subtitle,
   onBack,
   headerPct = 0.10,
+  collapsedTitleOffset = 10,
+  collapsedSubtitleOffset = 0,
   contentPadding,
   bottomPadding,
   isEmpty,
@@ -39,6 +43,8 @@ export default function FancyHeaderBackLayout({
       bottomPadding={bottomPadding}
       isEmpty={isEmpty}
       headerColor={headerColor}
+      collapsedTitleOffset={collapsedTitleOffset}
+      collapsedSubtitleOffset={collapsedSubtitleOffset}
       onScrollY={onScrollY}
       headerChildren={
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -47,14 +53,20 @@ export default function FancyHeaderBackLayout({
             size={24}
             onPress={onBack}
             iconColor={theme.colors.onHeader}
-            style={{ margin: 0, marginRight: 8 }}
+            style={{ margin: 0, marginRight: 8, marginTop: collapsedTitleOffset + 5 }}
           />
           <View style={{ flex: 1 }}>
-            <Text variant="headlineSmall" style={{ color: theme.colors.onHeader, fontWeight: '700' }}>
+            <Text
+              variant="headlineSmall"
+              style={{ color: theme.colors.onHeader, fontWeight: '700', transform: [ { translateY: collapsedTitleOffset } ] }}
+            >
               {title}
             </Text>
             {!!subtitle && (
-              <Text variant="bodySmall" style={{ color: theme.colors.onHeader, opacity: 0.85, marginTop: 2 }}>
+              <Text
+                variant="bodySmall"
+                style={{ color: theme.colors.onHeader, opacity: 0.85, marginTop: 2, transform: [ { translateY: collapsedSubtitleOffset } ] }}
+              >
                 {subtitle}
               </Text>
             )}

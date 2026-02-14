@@ -1,48 +1,30 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import { Button, ProgressBar, Text } from 'react-native-paper';
-import { Audio, AVPlaybackStatusSuccess } from 'expo-av';
+import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
 
 type Props = { url: string };
 
 export default function AudioPlayer({ url }: Props) {
-  const soundRef = useRef<Audio.Sound | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [position, setPosition] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const player = useAudioPlayer(url, { updateInterval: 250 });
+  const status = useAudioPlayerStatus(player);
+  const isLoaded = status.isLoaded;
+  const isPlaying = status.playing;
+  const currentSeconds = Number.isFinite(status.currentTime) ? status.currentTime : 0;
+  const durationSeconds = Number.isFinite(status.duration) ? status.duration : 0;
+  const position = isLoaded ? Math.max(0, Math.floor(currentSeconds * 1000)) : 0;
+  const duration = isLoaded ? Math.max(0, Math.floor(durationSeconds * 1000)) : 0;
 
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const { sound } = await Audio.Sound.createAsync({ uri: url }, { shouldPlay: false }, (status) => {
-        if (!mounted) return;
-        if (!status.isLoaded) return;
-        const s = status as AVPlaybackStatusSuccess;
-        setPosition(s.positionMillis ?? 0);
-        setDuration(s.durationMillis ?? 0);
-        setIsPlaying(s.isPlaying);
-      });
-      soundRef.current = sound;
-    })();
-
-    return () => {
-      mounted = false;
-      soundRef.current?.unloadAsync();
-      soundRef.current = null;
-    };
-  }, [url]);
-
-  async function togglePlay() {
-    const snd = soundRef.current;
-    if (!snd) return;
-    const status = await snd.getStatusAsync();
-    if ('isLoaded' in status && status.isLoaded) {
-      if (status.isPlaying) {
-        await snd.pauseAsync();
-      } else {
-        await snd.playAsync();
-      }
+  function togglePlay() {
+    if (!isLoaded) return;
+    if (isPlaying) {
+      player.pause();
+      return;
     }
+    if (duration > 0 && position >= duration) {
+      void player.seekTo(0);
+    }
+    player.play();
   }
 
   const progress = duration ? position / duration : 0;

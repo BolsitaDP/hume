@@ -3,6 +3,23 @@ import { Platform } from 'react-native';
 
 export const HABITS_CHANNEL_ID = 'habits-v2';
 
+export function createNotificationContent(title: string, body: string, data?: Record<string, any>) {
+  return {
+    title,
+    body,
+    data: data || {},
+    sound: true,
+    ios: {
+      sound: true,
+    },
+    android: {
+      sound: 'default',
+      priority: 'high' as const,
+      vibrate: [ 0, 250, 250, 250 ],
+    },
+  };
+}
+
 export function setupNotificationHandler() {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -21,6 +38,7 @@ export async function ensureNotificationPermission() {
   const req = await Notifications.requestPermissionsAsync({
     ios: { allowAlert: true, allowBadge: true, allowSound: true },
   } as any);
+
   return req.granted ?? false;
 }
 
@@ -30,8 +48,11 @@ export async function configureAndroidChannel() {
   await Notifications.setNotificationChannelAsync(HABITS_CHANNEL_ID, {
     name: 'Habits',
     importance: Notifications.AndroidImportance.HIGH,
-    vibrationPattern: [0, 250, 250, 250],
+    vibrationPattern: [ 0, 250, 250, 250 ],
     sound: 'default',
+    lightColor: '#5B7C99',
+    enableVibrate: true,
+    bypassDnd: false,
   });
 }
 
@@ -56,12 +77,12 @@ export async function scheduleDailyReminder(options: {
 }) {
   await configureAndroidChannel();
 
-  await Notifications.scheduleNotificationAsync({
-    content: {
-      title: options.title,
-      body: options.body,
-      data: { tag: 'daily-reminder' },
-    },
+  const notificationId = await Notifications.scheduleNotificationAsync({
+    content: createNotificationContent(
+      options.title,
+      options.body,
+      { tag: 'daily-reminder' }
+    ),
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour: options.hour,
@@ -69,4 +90,6 @@ export async function scheduleDailyReminder(options: {
       channelId: HABITS_CHANNEL_ID,
     },
   });
+
+  return notificationId;
 }

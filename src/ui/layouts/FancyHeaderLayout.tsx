@@ -14,6 +14,8 @@ interface FancyHeaderLayoutProps {
   bottomPadding?: number; // 120 por defecto
   isEmpty?: boolean; // para centrar verticalmente
   headerColor?: string;
+  collapsedTitleOffset?: number;
+  collapsedSubtitleOffset?: number;
   children: React.ReactNode;
   onScrollY?: (y: number) => void; // callback para que pantallas reaccionen
 }
@@ -29,6 +31,8 @@ export default function FancyHeaderLayout({
   bottomPadding = 10,
   isEmpty,
   headerColor,
+  collapsedTitleOffset = 10,
+  collapsedSubtitleOffset = 10,
   children,
   onScrollY,
 }: FancyHeaderLayoutProps) {
@@ -47,6 +51,18 @@ export default function FancyHeaderLayout({
   const subtitleOpacity = scrollY.interpolate({
     inputRange: [ 0, scrollDistance * 0.6, scrollDistance ],
     outputRange: [ 1, 0, 0 ],
+    extrapolate: 'clamp',
+  });
+
+  const titleTranslateY = scrollY.interpolate({
+    inputRange: [ 0, scrollDistance ],
+    outputRange: [ 10, collapsedTitleOffset ],
+    extrapolate: 'clamp',
+  });
+
+  const subtitleTranslateY = scrollY.interpolate({
+    inputRange: [ 0, scrollDistance ],
+    outputRange: [ 0, collapsedSubtitleOffset ],
     extrapolate: 'clamp',
   });
 
@@ -90,12 +106,14 @@ export default function FancyHeaderLayout({
         {headerChildren ?? (
           <>
             {!!title && (
-              <Text variant="headlineMedium" style={{ color: theme.colors.onHeader, fontWeight: '700' }}>
-                {title}
-              </Text>
+              <Animated.View style={{ transform: [ { translateY: titleTranslateY } ] }}>
+                <Text variant="headlineMedium" style={{ color: theme.colors.onHeader, fontWeight: '700' }}>
+                  {title}
+                </Text>
+              </Animated.View>
             )}
             {!!subtitle && (
-              <Animated.View style={{ opacity: subtitleOpacity }}>
+              <Animated.View style={{ opacity: subtitleOpacity, transform: [ { translateY: subtitleTranslateY } ] }}>
                 <Text variant="bodyMedium" style={{ color: theme.colors.onHeader, opacity: 0.85, marginTop: 4 }}>
                   {subtitle}
                 </Text>
@@ -107,4 +125,3 @@ export default function FancyHeaderLayout({
     </View>
   );
 }
-

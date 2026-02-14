@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 import { t } from '../i18n';
 import { useSettingsStore } from '../store/settings.store';
-import { ensureNotificationPermission, configureAndroidChannel, HABITS_CHANNEL_ID } from '../services/notifications';
+import { ensureNotificationPermission, configureAndroidChannel, HABITS_CHANNEL_ID, createNotificationContent } from '../services/notifications';
 import { pickRageMessage } from '../services/rageMessages';
 
 
@@ -67,7 +67,12 @@ export default function SettingsScreen({ }) {
   }, [ notificationsEnabled, locale, toneLevel ]);
 
   return (
-    <FancyHeaderLayout title={t('nav.settings')}>
+    <FancyHeaderLayout
+      title={t('nav.settings')}
+      expandedPct={0.10}
+      collapsedPct={0.10}
+      scrollDistance={1}
+    >
       <Portal>
         {/* Idioma */}
         <Dialog visible={langVisible} onDismiss={() => setLangVisible(false)} style={{ borderRadius: 12 }}>
@@ -159,21 +164,25 @@ export default function SettingsScreen({ }) {
           onPress={async () => {
             const ok = await ensureNotificationPermission();
             if (!ok) return;
+
             await configureAndroidChannel();
+
             const body = pickRageMessage(locale, toneLevel);
+
             await Notifications.scheduleNotificationAsync({
-              content: {
-                title: t('notifications.title'),
+              content: createNotificationContent(
+                t('notifications.title'),
                 body,
-                data: { tag: 'manual-test' },
-                sound: true,
-              },
+                { tag: 'manual-test' }
+              ),
               trigger: {
                 type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
                 seconds: 5,
                 channelId: HABITS_CHANNEL_ID,
               },
             });
+
+            setTimeout(refreshNotificationDebug, 500);
           }}
         >
           {t('settings.test_notification_5s')}
