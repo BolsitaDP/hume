@@ -123,6 +123,27 @@
     habits: 'hábitos',
   },
 
+  habit_detail: {
+    not_found: 'No se encontró el hábito.',
+    delete_title: 'Eliminar hábito',
+    delete_message: '¿Seguro que quieres eliminar este hábito?',
+    delete_confirm: 'Eliminar',
+    mark_complete: 'Marcar como hecho',
+    mark_incomplete: 'Marcar como no hecho',
+    mark_incomplete_confirm_title: '¿Marcar como no hecho?',
+    mark_incomplete_confirm_message: 'Esto quitará el día de hoy del historial.',
+    mark_incomplete_confirm_button: 'Marcar no hecho',
+    confirm_toggle_title: 'Confirmar cambio',
+    confirm_mark_complete_message: '¿Marcar {date} como hecho?',
+    confirm_mark_incomplete_message: '¿Marcar {date} como no hecho?',
+    current_streak: 'Racha actual',
+    total_completions: 'Completados totales',
+    schedule: 'Horario',
+    completed_today: 'Completado hoy',
+    already_marked_title: 'Ya está marcado hoy',
+    already_marked_message: 'Ya marcaste este hábito como hecho hoy.',
+  },
+
   already_marked_title: 'Ya está marcado hoy',
   already_marked_message: 'Ya marcaste este hábito como hecho hoy.',
 

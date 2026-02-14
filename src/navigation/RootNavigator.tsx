@@ -23,6 +23,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   const hasSeenWelcome = useSettingsStore((s) => s.hasSeenWelcome);
+  const locale = useSettingsStore((s) => s.locale);
+  const habitDetailTitle = React.useMemo(() => t('nav.habit_detail'), [ locale ]);
 
   return (
     <Stack.Navigator initialRouteName={hasSeenWelcome ? 'Tabs' : 'Welcome'}>
@@ -38,7 +40,7 @@ export default function RootNavigator() {
       <Stack.Screen
         name="HabitDetail"
         component={HabitDetailScreen}
-        options={{ title: t('nav.habit_detail') }}
+        options={{ headerShown: false, title: habitDetailTitle }}
       />
 
       <Stack.Screen

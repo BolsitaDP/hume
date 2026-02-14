@@ -40,6 +40,7 @@ export default function HomeScreen({ navigation }: any) {
       <FancyHeaderLayout
         title={t('home.daily_progress_title')}
         subtitle={t('home.daily_progress_subtitle')}
+        collapsedTitleOffset={20}
         isEmpty={habits.length === 0}
         onScrollY={(y) => {
           if (y > 60 && fabExpanded) setFabExpanded(false);
@@ -123,7 +124,6 @@ export default function HomeScreen({ navigation }: any) {
     </View>
   );
 }
-
 
 
 

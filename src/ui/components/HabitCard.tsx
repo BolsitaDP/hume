@@ -9,11 +9,12 @@ import { formatScheduleLabel } from '../../utils/schedule';
 
 type Props = {
   habit: Habit;
-  onToggleToday: () => void;
+  onToggleToday?: () => void;
   onPress?: () => void;
+  canToggleToday?: boolean;
 };
 
-export default function HabitCard({ habit, onToggleToday, onPress }: Props) {
+export default function HabitCard({ habit, onToggleToday, onPress, canToggleToday = true }: Props) {
   const doneToday = !!habit.completions[todayKey()];
   const scheduleLabel = formatScheduleLabel(habit.schedule.days, habit.schedule.time);
   const theme = useTheme();
@@ -41,25 +42,27 @@ export default function HabitCard({ habit, onToggleToday, onPress }: Props) {
             </View>
           </TouchableOpacity>
 
-          <IconButton
-            mode="contained"
-            icon="check"
-            size={22}
-            onPress={() => {
-              if (doneToday) {
-                Alert.alert(
-                  t('habit_detail.already_marked_title'),
-                  t('habit_detail.already_marked_message')
-                );
-              } else {
-                onToggleToday();
-              }
-            }}
-            style={{ marginLeft: 8 }}
-            containerColor={doneToday ? theme.colors.success : theme.colors.primary}
-            iconColor={doneToday ? theme.colors.onSuccess : theme.colors.onPrimary}
-            accessibilityLabel={doneToday ? t('habit_detail.completed_today') : t('habit_detail.mark_complete')}
-          />
+          {canToggleToday && (
+            <IconButton
+              mode="contained"
+              icon="check"
+              size={22}
+              onPress={() => {
+                if (doneToday) {
+                  Alert.alert(
+                    t('habit_detail.already_marked_title'),
+                    t('habit_detail.already_marked_message')
+                  );
+                } else {
+                  onToggleToday?.();
+                }
+              }}
+              style={{ marginLeft: 8 }}
+              containerColor={doneToday ? theme.colors.success : theme.colors.primary}
+              iconColor={doneToday ? theme.colors.onSuccess : theme.colors.onPrimary}
+              accessibilityLabel={doneToday ? t('habit_detail.completed_today') : t('habit_detail.mark_complete')}
+            />
+          )}
         </View>
       </Card.Content>
     </Card>

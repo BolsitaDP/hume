@@ -12,7 +12,7 @@ import { t } from '../i18n';
 const weekDays: WeekDay[] = [ 'mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun' ];
 
 export default function AllHabitsScreen({ navigation }: any) {
-  const { habits, hydrated, hydrate, toggleToday, removeHabit } = useHabitsStore();
+  const { habits, hydrated, hydrate } = useHabitsStore();
   const theme = useTheme();
 
   useEffect(() => {
@@ -66,14 +66,14 @@ export default function AllHabitsScreen({ navigation }: any) {
       >
         {!hydrated ? (
           <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-            <Text style={{ textAlign: 'center', fontSize: 16 }}>{t('common.loading')}</Text>
+            <Text style={{ textAlign: 'center', fontSize: 16, color: theme.colors.onSurfaceVariant }}>{t('common.loading')}</Text>
           </View>
         ) : habits.length === 0 ? (
           <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, paddingHorizontal: 32 }}>
-            <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 24 }}>{t('all_habits.empty')}</Text>
+            <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 24, color: theme.colors.onSurfaceVariant }}>{t('all_habits.empty')}</Text>
           </View>
         ) : (
-          <>
+          <View style={{ paddingHorizontal: 12, paddingVertical: 12 }}>
             {weekDays.map((day) => {
               const dayHabits = habitsByDay[ day ];
               const count = dayHabits.length;
@@ -84,15 +84,17 @@ export default function AllHabitsScreen({ navigation }: any) {
                 <View
                   key={day}
                   style={{
-                    marginBottom: 12,
-                    borderRadius: 12,
-                    backgroundColor: theme.colors.surfaceVariant,
+                    marginBottom: 16,
+                    borderRadius: 14,
+                    backgroundColor: theme.colors.surface,
                     overflow: 'hidden',
-                    elevation: 2,
-                    shadowColor: theme.colors.shadow,
-                    shadowOffset: { width: 0, height: 1 },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 2,
+                    elevation: 3,
+                    shadowColor: theme.colors.primary,
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.12,
+                    shadowRadius: 4,
+                    borderWidth: 1,
+                    borderColor: theme.colors.primaryContainer,
                   }}
                 >
                   <List.Accordion
@@ -102,48 +104,60 @@ export default function AllHabitsScreen({ navigation }: any) {
                     onPress={() => setExpandedDays(prev => ({ ...prev, [ day ]: !prev[ day ] }))}
                     style={{
                       backgroundColor: theme.colors.surface,
-                      paddingVertical: 4,
+                      paddingVertical: 8,
+                      paddingHorizontal: 16,
                     }}
                     titleStyle={{
-                      fontWeight: '600',
-                      fontSize: 16,
+                      fontWeight: '700',
+                      fontSize: 17,
+                      color: theme.colors.primary,
+                      letterSpacing: 0.3,
                     }}
                     descriptionStyle={{
                       fontSize: 13,
-                      opacity: 0.7,
+                      color: theme.colors.onSurfaceVariant,
+                      opacity: 0.8,
+                      marginTop: 2,
                     }}
                   >
-                    <View style={{ paddingHorizontal: 8, paddingBottom: 8 }}>
-                      {dayHabits.map((h) => (
-                        <HabitCard
-                          key={h.id}
-                          habit={h}
-                          onToggleToday={() => toggleToday(h.id)}
-                          onPress={() => navigation.navigate('HabitDetail', { habitId: h.id })}
-                        />
+                    <View
+                      style={{
+                        paddingHorizontal: 16,
+                        paddingBottom: 12,
+                        paddingTop: 16,
+                        backgroundColor: theme.colors.surface,
+                        borderTopWidth: 1,
+                        borderTopColor: theme.colors.primaryContainer,
+                      }}
+                    >
+                      {dayHabits.map((h, index) => (
+                        <View key={h.id} style={{ marginBottom: index < dayHabits.length - 1 ? 8 : 0 }}>
+                          <HabitCard
+                            habit={h}
+                            canToggleToday={false}
+                            onPress={() => navigation.navigate('HabitDetail', { habitId: h.id })}
+                          />
+                        </View>
                       ))}
                     </View>
                   </List.Accordion>
                 </View>
               );
             })}
-          </>
+          </View>
         )}
       </FancyHeaderLayout>
 
-            <View style={{ position: 'absolute', right: 16, bottom: 16 }}>
+      <View style={{ position: 'absolute', right: 16, bottom: 16 }}>
         <AnimatedFab
           expanded={fabExpanded}
           label={t('home.add_habit')}
           onPress={() => navigation.navigate('AddHabit')}
           icon="plus"
-          textColorDark={theme.colors.background}
         />
       </View>
     </View>
   );
 }
-
-
 
 

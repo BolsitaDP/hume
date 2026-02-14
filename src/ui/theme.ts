@@ -22,27 +22,34 @@ export const lightTheme: AppTheme = {
   colors: {
     ...baseLight.colors,
 
-    // Paleta principal
-    primary: '#FF5B5B',      // Base
-    secondary: '#E64545',    // Más oscuro para hover / acciones secundarias
+    // Paleta principal - Modern Coral & Purple
+    primary: '#FF6B6B',           // Coral vibrante
+    primaryContainer: '#FFE5E5',  // Fondo suave para primary
+    onPrimaryContainer: '#A01C1C',
+    secondary: '#7B68EE',         // Morado sofisticado
+    secondaryContainer: '#EBE0FF', // Fondo suave para secondary
+    onSecondaryContainer: '#3D1F6B',
+    tertiary: '#FFA800',          // Naranja cálido
+    tertiaryContainer: '#FFEBCC', // Fondo suave para tertiary
+    onTertiaryContainer: '#8B5A00',
 
-    // Variantes útiles (opcional pero recomendado)
+    // Text & Surface
     onPrimary: '#FFFFFF',
+    onSecondary: '#FFFFFF',
+    onTertiary: '#FFFFFF',
     onError: '#FFFFFF',
 
     // Header
-    header: '#FF5B5B',
-    headerEdge: '#E64545',
+    header: '#FF6B6B',
+    headerEdge: '#FF5555',
     headerCutout: baseLight.colors.background,
     onHeader: '#FFFFFF',
 
-    // Semantic
-    success: '#4CAF50',
+    // Semantic colors
+    success: '#22C55E',      // Verde moderno
     onSuccess: '#FFFFFF',
-
-    // Urgent (intense red, same in light/dark)
-    error: '#D32F2F',
-    urgent: '#D32F2F',
+    error: '#E74C3C',        // Rojo profundo para errores
+    urgent: '#E74C3C',
     onUrgent: '#FFFFFF',
   },
 };
@@ -52,27 +59,34 @@ export const darkTheme: AppTheme = {
   colors: {
     ...baseDark.colors,
 
-    // Paleta principal
-    primary: '#FF6B6B',      // Un pelín más claro para contraste en dark
-    secondary: '#E25555',    // Controlado, no tan oscuro
+    // Paleta principal - Modern Coral & Purple (Dark Mode)
+    primary: '#FF8080',           // Coral más claro para dark
+    primaryContainer: '#A01C1C',  // Fondo oscuro para primary
+    onPrimaryContainer: '#FFE5E5',
+    secondary: '#9B8FFF',         // Morado más claro
+    secondaryContainer: '#3D1F6B', // Fondo oscuro
+    onSecondaryContainer: '#EBE0FF',
+    tertiary: '#FFB923',          // Naranja más brillante
+    tertiaryContainer: '#8B5A00', // Fondo oscuro
+    onTertiaryContainer: '#FFEBCC',
 
-    // Variantes útiles
+    // Text & Surface
     onPrimary: '#FFFFFF',
+    onSecondary: '#FFFFFF',
+    onTertiary: '#FFFFFF',
     onError: '#FFFFFF',
 
     // Header
-    header: '#FF6B6B',
-    headerEdge: '#E25555',
+    header: '#FF8080',
+    headerEdge: '#FF6B6B',
     headerCutout: baseDark.colors.background,
     onHeader: '#FFFFFF',
 
-    // Semantic
-    success: '#22C55E',
+    // Semantic colors
+    success: '#22C55E',      // Verde brillante para dark
     onSuccess: '#FFFFFF',
-
-    // Urgent (intense red, same in light/dark)
-    error: '#D32F2F',
-    urgent: '#D32F2F',
+    error: '#FF6B6B',        // Rojo coral para dark
+    urgent: '#FF6B6B',
     onUrgent: '#FFFFFF',
   },
 };

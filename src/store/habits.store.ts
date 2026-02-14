@@ -29,6 +29,7 @@ type HabitsState = {
   addHabit: (payload: { title: string; category: HabitCategory; schedule: HabitSchedule }) => Promise<Habit | null>;
   updateHabit: (habitId: string, payload: { title: string; category: HabitCategory; schedule: HabitSchedule }) => Promise<void>;
   toggleToday: (habitId: string) => Promise<void>;
+  toggleCompletionForDate: (habitId: string, dateKey: string) => Promise<void>;
   removeHabit: (habitId: string) => Promise<void>;
 };
 
@@ -115,6 +116,27 @@ export const useHabitsStore = create<HabitsState>((set, get) => ({
     set({ habits: next });
 
     // Guardar en segundo plano sin bloquear
+    saveJSON(STORAGE_KEY, next).catch(err => {
+      console.error('Error saving habit completions:', err);
+    });
+  },
+
+  toggleCompletionForDate: async (habitId, dateKey) => {
+    const next = get().habits.map((h) => {
+      if (h.id !== habitId) return h;
+
+      const current = !!h.completions[ dateKey ];
+      return {
+        ...h,
+        completions: {
+          ...h.completions,
+          [ dateKey ]: !current,
+        },
+      };
+    });
+
+    set({ habits: next });
+
     saveJSON(STORAGE_KEY, next).catch(err => {
       console.error('Error saving habit completions:', err);
     });

@@ -1,4 +1,5 @@
 import { WeekDay } from '../store/habits.store';
+import { t } from '../i18n';
 
 const WEEK_MAP: WeekDay[] = [ 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' ];
 
@@ -33,7 +34,8 @@ export function formatScheduleLabel(days: WeekDay[], time: string) {
     (a, b) => order.indexOf(a) - order.indexOf(b)
   );
 
-  return `${sortedDays.join(', ')} • ${time}`;
+  const translatedDays = sortedDays.map((day) => t(`week.${day}`));
+  return `${translatedDays.join(', ')} - ${time}`;
 }
 
 export function isHabitActiveNow(
@@ -46,3 +48,4 @@ export function isHabitActiveNow(
     isTimeReached(time, date)
   );
 }
+

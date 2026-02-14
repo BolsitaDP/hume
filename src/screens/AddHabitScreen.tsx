@@ -50,7 +50,7 @@ export default function AddHabitScreen({ navigation, route }: Props) {
     navigation.setOptions({
       title: habitId ? t('nav.edit_habit') : t('nav.new_habit')
     });
-  }, [ habitId, navigation ]);
+  }, [ habitId, navigation, locale ]);
 
   const categoryOptions = useMemo<{ k: HabitCategory; l: string; icon: string }[]>(
     () => [
@@ -61,7 +61,7 @@ export default function AddHabitScreen({ navigation, route }: Props) {
       { k: 'personal', l: t('categories.personal'), icon: 'account' },
       { k: 'discipline', l: t('categories.discipline'), icon: 'shield-check' },
     ],
-    []
+    [ locale ]
   );
 
   const weekOptions = useMemo(
@@ -74,7 +74,7 @@ export default function AddHabitScreen({ navigation, route }: Props) {
       { k: 'sat' as const, l: t('week.sat') },
       { k: 'sun' as const, l: t('week.sun') },
     ],
-    []
+    [ locale ]
   );
 
   const toggleDay = (d: WeekDay) => {

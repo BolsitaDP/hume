@@ -123,6 +123,27 @@
     habits: 'habits',
   },
 
+  habit_detail: {
+    not_found: 'Habit not found.',
+    delete_title: 'Delete habit',
+    delete_message: 'Are you sure you want to delete this habit?',
+    delete_confirm: 'Delete',
+    mark_complete: 'Mark complete',
+    mark_incomplete: 'Mark incomplete',
+    mark_incomplete_confirm_title: 'Mark as incomplete?',
+    mark_incomplete_confirm_message: 'This will remove today from the completion history.',
+    mark_incomplete_confirm_button: 'Mark incomplete',
+    confirm_toggle_title: 'Confirm change',
+    confirm_mark_complete_message: 'Mark {date} as completed?',
+    confirm_mark_incomplete_message: 'Mark {date} as incomplete?',
+    current_streak: 'Current streak',
+    total_completions: 'Total completions',
+    schedule: 'Schedule',
+    completed_today: 'Completed today',
+    already_marked_title: 'Already done today',
+    already_marked_message: 'You already marked this habit as done today.',
+  },
+
   already_marked_title: 'Already done today',
   already_marked_message: 'You already marked this habit as done today.',
 

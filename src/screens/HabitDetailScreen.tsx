@@ -1,31 +1,28 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Text, Card, Chip, Divider, useTheme, IconButton, Button } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { RootStackParamList } from '../navigation/RootNavigator';
-import { useHabitsStore } from '../store/habits.store';
+import { useHabitsStore, WeekDay } from '../store/habits.store';
+import { useSettingsStore } from '../store/settings.store';
 import { getCategoryColor } from '../utils/categoryColors';
 import { formatScheduleLabel } from '../utils/schedule';
 import { todayKey as makeTodayKey } from '../utils/date';
 import { t } from '../i18n';
+import FancyHeaderBackLayout from '../ui/layouts/FancyHeaderBackLayout';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HabitDetail'>;
 
 export default function HabitDetailScreen({ route, navigation }: Props) {
   const { habitId } = route.params;
-  const { habits, removeHabit, toggleToday } = useHabitsStore();
+  const { habits, removeHabit, toggleToday, toggleCompletionForDate } = useHabitsStore();
+  const locale = useSettingsStore((s) => s.locale);
   const theme = useTheme();
   const [ currentMonth, setCurrentMonth ] = useState(new Date());
 
   const habit = useMemo(() => habits.find(h => h.id === habitId), [ habits, habitId ]);
-
-  useEffect(() => {
-    if (habit) {
-      navigation.setOptions({ title: habit.title });
-    }
-  }, [ habit, navigation ]);
 
   if (!habit) {
     return (
@@ -93,6 +90,39 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
     }
   };
 
+  const handleToggleCalendarDay = (dateKey: string, isCompleted: boolean) => {
+    const date = new Date(`${dateKey}T00:00:00`);
+    const localeTag = locale === 'es' ? 'es-ES' : locale === 'ar' ? 'ar' : 'en-US';
+    const dateLabel = date.toLocaleDateString(localeTag, {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+    });
+
+    const messageTemplate = isCompleted
+      ? t('habit_detail.confirm_mark_incomplete_message')
+      : t('habit_detail.confirm_mark_complete_message');
+    const message = String(messageTemplate)
+      .replace('{date}', dateLabel)
+      .replace('%{date}', dateLabel);
+
+    Alert.alert(
+      t('habit_detail.confirm_toggle_title'),
+      message,
+      [
+        {
+          text: t('common.cancel'),
+          style: 'cancel',
+        },
+        {
+          text: isCompleted ? t('habit_detail.mark_incomplete') : t('habit_detail.mark_complete'),
+          style: isCompleted ? 'destructive' : 'default',
+          onPress: () => toggleCompletionForDate(habitId, dateKey),
+        },
+      ]
+    );
+  };
+
   // Calculate statistics
   const completionDates = Object.entries(habit.completions)
     .filter(([ _, completed ]) => completed)
@@ -118,7 +148,7 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
   }
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 16 }}>
+    <FancyHeaderBackLayout title={habit.title} onBack={() => navigation.goBack()}>
       {/* Header Card */}
       <Card style={{ marginBottom: 16, backgroundColor: categoryColor }}>
         <Card.Content>
@@ -221,7 +251,14 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
           </View>
 
           {/* Calendar days */}
-          {renderCalendar(currentMonth, habit.completions, theme, categoryColor)}
+          {renderCalendar(
+            currentMonth,
+            habit.completions,
+            habit.schedule.days,
+            theme,
+            categoryColor,
+            handleToggleCalendarDay
+          )}
         </Card.Content>
       </Card>
 
@@ -280,11 +317,21 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
       </Card>
 
 
-    </ScrollView>
+    </FancyHeaderBackLayout>
   );
 }
 
-function renderCalendar(currentMonth: Date, completions: Record<string, boolean>, theme: any, categoryColor: string) {
+function renderCalendar(
+  currentMonth: Date,
+  completions: Record<string, boolean>,
+  scheduledDays: WeekDay[],
+  theme: any,
+  categoryColor: string,
+  onDayPress: (dateKey: string, isCompleted: boolean) => void
+) {
+  const weekdayMap: WeekDay[] = [ 'sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat' ];
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
 
@@ -305,12 +352,18 @@ function renderCalendar(currentMonth: Date, completions: Record<string, boolean>
   // Add all days of the month
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
+    date.setHours(0, 0, 0, 0);
     const dateKey = date.toISOString().split('T')[ 0 ];
     const isCompleted = completions[ dateKey ];
+    const weekday = weekdayMap[ date.getDay() ];
+    const isScheduled = scheduledDays.includes(weekday);
+    const isFuture = date.getTime() > today.getTime();
 
     currentWeek.push({
       day,
       isCompleted,
+      isScheduled,
+      isFuture,
       dateKey,
     });
 
@@ -334,12 +387,22 @@ function renderCalendar(currentMonth: Date, completions: Record<string, boolean>
       {weeks.map((week, weekIndex) => (
         <View key={weekIndex} style={styles.weekRow}>
           {week.map((dayInfo, dayIndex) => (
-            <View
+            <TouchableOpacity
               key={dayIndex}
+              activeOpacity={0.8}
+              disabled={!dayInfo || !!dayInfo.isFuture}
+              onPress={() => dayInfo && onDayPress(dayInfo.dateKey, !!dayInfo.isCompleted)}
               style={[
                 styles.dayCell,
+                dayInfo?.isScheduled && !dayInfo?.isCompleted && {
+                  borderWidth: 1.5,
+                  borderColor: darkenColor(categoryColor, 0.15),
+                  borderRadius: 100,
+                },
                 dayInfo?.isCompleted && {
                   backgroundColor: categoryColor,
+                  borderWidth: 1.5,
+                  borderColor: categoryColor,
                   borderRadius: 100,
                 }
               ]}
@@ -355,12 +418,30 @@ function renderCalendar(currentMonth: Date, completions: Record<string, boolean>
                   {dayInfo.day}
                 </Text>
               )}
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
       ))}
     </View>
   );
+}
+
+function darkenColor(color: string, amount: number) {
+  const factor = 1 - Math.max(0, Math.min(1, amount));
+
+  if (/^#[0-9a-fA-F]{6}$/.test(color)) {
+    const r = Math.round(parseInt(color.slice(1, 3), 16) * factor);
+    const g = Math.round(parseInt(color.slice(3, 5), 16) * factor);
+    const b = Math.round(parseInt(color.slice(5, 7), 16) * factor);
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+  }
+
+  if (/^#[0-9a-fA-F]{3}$/.test(color)) {
+    const expanded = `#${color[ 1 ]}${color[ 1 ]}${color[ 2 ]}${color[ 2 ]}${color[ 3 ]}${color[ 3 ]}`;
+    return darkenColor(expanded, amount);
+  }
+
+  return color;
 }
 
 const styles = StyleSheet.create({
@@ -422,6 +503,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
+
+
 
 
 
