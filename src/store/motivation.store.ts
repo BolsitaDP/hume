@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { loadJSON, saveJSON } from '../services/storage';
-import { detectMotivationKind, getYouTubeId, MotivationKind } from '../utils/motivation';
+import { detectMotivationKind, getYouTubeId, MotivationKind, resolveMotivationThumbnail } from '../utils/motivation';
 
 export type MotivationItem = {
   id: string;
   kind: MotivationKind;
   url: string;
+  thumbnailUrl?: string;
   title?: string;
   createdAt: number;
 };
@@ -33,7 +34,29 @@ export const useMotivationStore = create<MotivationState>((set, get) => ({
 
   hydrate: async () => {
     const data = await loadJSON<MotivationItem[]>(STORAGE_KEY);
-    set({ items: data ?? [], hydrated: true });
+    const loaded = data ?? [];
+    set({ items: loaded, hydrated: true });
+
+    const needBackfill = loaded.some((item) =>
+      !item.thumbnailUrl && (item.kind === 'youtube' || item.kind === 'tiktok')
+    );
+    if (!needBackfill) return;
+
+    const resolved = await Promise.all(
+      loaded.map(async (item) => {
+        if (item.thumbnailUrl) return item;
+        if (item.kind !== 'youtube' && item.kind !== 'tiktok') return item;
+
+        const thumbnailUrl = await resolveMotivationThumbnail(item.kind, item.url);
+        return thumbnailUrl ? { ...item, thumbnailUrl } : item;
+      })
+    );
+
+    const changed = resolved.some((item, idx) => item.thumbnailUrl !== loaded[ idx ]?.thumbnailUrl);
+    if (!changed) return;
+
+    set({ items: resolved });
+    await saveJSON(STORAGE_KEY, resolved);
   },
 
   addItem: async ({ url, kind, title }) => {
@@ -52,10 +75,13 @@ export const useMotivationStore = create<MotivationState>((set, get) => ({
 
     if (!resolved) return null; // UI should prompt user to pick kind
 
+    const thumbnailUrl = await resolveMotivationThumbnail(resolved, trimmed);
+
     const item: MotivationItem = {
       id: uid(),
       kind: resolved,
       url: trimmed,
+      thumbnailUrl,
       title: title?.trim() || undefined,
       createdAt: Date.now(),
     };

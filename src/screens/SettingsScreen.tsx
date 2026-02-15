@@ -1,70 +1,40 @@
-﻿import React, { useEffect, useState } from 'react';
-import { List, Switch, Button, Portal, Dialog, RadioButton } from 'react-native-paper';
+import React, { useEffect, useState } from 'react';
+import { List, Button, Portal, Dialog, RadioButton } from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
 
 import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 import { t } from '../i18n';
 import { useSettingsStore } from '../store/settings.store';
-import { ensureNotificationPermission, configureAndroidChannel, HABITS_CHANNEL_ID, createNotificationContent } from '../services/notifications';
-import { pickRageMessage } from '../services/rageMessages';
-
-
-type ThemeMode = 'system' | 'light' | 'dark';
-type DebugScheduledItem = {
-  id: string;
-  title: string;
-  tag: string;
-  trigger: string;
-};
+import { ensureNotificationPermission, configureAndroidChannel } from '../services/notifications';
 
 export default function SettingsScreen({ }) {
   const {
     locale,
-    toneLevel,
-    notificationsEnabled,
-    themeMode,
     setLocale,
+    toneLevel,
     setToneLevel,
-    setNotificationsEnabled,
-    setThemeMode,
   } = useSettingsStore();
 
   // Dialog state + temp selections
   const [ langVisible, setLangVisible ] = useState(false);
-  const [ themeVisible, setThemeVisible ] = useState(false);
   const [ toneVisible, setToneVisible ] = useState(false);
 
   const [ tmpLocale, setTmpLocale ] = useState(locale);
-  const [ tmpTheme, setTmpTheme ] = useState<ThemeMode>(themeMode);
   const [ tmpTone, setTmpTone ] = useState<0 | 1 | 2 | 3>(toneLevel);
-  const [ debugPermission, setDebugPermission ] = useState(t('settings.debug_unknown'));
-  const [ debugScheduled, setDebugScheduled ] = useState<DebugScheduledItem[]>([]);
+  const [ hasNotificationPermission, setHasNotificationPermission ] = useState(true);
 
   // Sync temp values when opening
   useEffect(() => { if (langVisible) setTmpLocale(locale); }, [ langVisible ]);
-  useEffect(() => { if (themeVisible) setTmpTheme(themeMode); }, [ themeVisible ]);
   useEffect(() => { if (toneVisible) setTmpTone(toneLevel); }, [ toneVisible ]);
 
-  const refreshNotificationDebug = async () => {
+  const refreshNotificationPermission = async () => {
     const permission = await Notifications.getPermissionsAsync();
-    setDebugPermission(permission.status);
-
-    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-    const mapped = scheduled.map((item) => {
-      const triggerType = (item.trigger as any)?.type ?? t('settings.debug_unknown');
-      return {
-        id: item.identifier,
-        title: item.content.title ?? t('settings.debug_untitled'),
-        tag: String(item.content.data?.tag ?? t('settings.debug_none')),
-        trigger: String(triggerType),
-      };
-    });
-    setDebugScheduled(mapped);
+    setHasNotificationPermission(permission.granted);
   };
 
   useEffect(() => {
-    refreshNotificationDebug();
-  }, [ notificationsEnabled, locale, toneLevel ]);
+    refreshNotificationPermission();
+  }, []);
 
   return (
     <FancyHeaderLayout
@@ -89,21 +59,7 @@ export default function SettingsScreen({ }) {
           </Dialog.Actions>
         </Dialog>
 
-        {/* Tema */}
-        <Dialog visible={themeVisible} onDismiss={() => setThemeVisible(false)} style={{ borderRadius: 12 }}>
-          <Dialog.Title>{t('settings.theme')}</Dialog.Title>
-          <Dialog.Content>
-            <RadioButton.Group onValueChange={(v) => setTmpTheme(v as ThemeMode)} value={tmpTheme}>
-              <RadioButton.Item label={t('settings.theme_system')} value="system" />
-              <RadioButton.Item label={t('settings.theme_light')} value="light" />
-              <RadioButton.Item label={t('settings.theme_dark')} value="dark" />
-            </RadioButton.Group>
-          </Dialog.Content>
-          <Dialog.Actions>
-            <Button onPress={() => setThemeVisible(false)}>{t('common.cancel')}</Button>
-            <Button onPress={async () => { await setThemeMode(tmpTheme); setThemeVisible(false); }}>{t('common.ok')}</Button>
-          </Dialog.Actions>
-        </Dialog>
+        {/* TODO: Re-enable theme selection dialog when theme UX is finalized. */}
 
         {/* Nivel de tono */}
         <Dialog visible={toneVisible} onDismiss={() => setToneVisible(false)} style={{ borderRadius: 12 }}>
@@ -132,14 +88,7 @@ export default function SettingsScreen({ }) {
         />
       </List.Section>
 
-      {/* Tema */}
-      <List.Section>
-        <List.Item
-          title={t('settings.theme')}
-          description={themeMode === 'system' ? t('settings.theme_system') : themeMode === 'light' ? t('settings.theme_light') : t('settings.theme_dark')}
-          onPress={() => setThemeVisible(true)}
-        />
-      </List.Section>
+      {/* TODO: Re-enable theme selector entry once theme selection is implemented again. */}
 
       {/* Nivel de tono */}
       <List.Section>
@@ -152,58 +101,21 @@ export default function SettingsScreen({ }) {
 
       {/* Notificaciones */}
       <List.Section>
-        <List.Item
-          title={t('settings.enable_notifications')}
-          right={() => (
-            <Switch value={notificationsEnabled} onValueChange={(v) => setNotificationsEnabled(v)} />
-          )}
-        />
-        <Button
-          mode="contained-tonal"
-          style={{ alignSelf: 'flex-start', marginTop: 8 }}
-          onPress={async () => {
-            const ok = await ensureNotificationPermission();
-            if (!ok) return;
+        {!hasNotificationPermission && (
+          <Button
+            mode="contained"
+            style={{ alignSelf: 'flex-start' }}
+            onPress={async () => {
+              const ok = await ensureNotificationPermission();
+              if (!ok) return;
 
-            await configureAndroidChannel();
-
-            const body = pickRageMessage(locale, toneLevel);
-
-            await Notifications.scheduleNotificationAsync({
-              content: createNotificationContent(
-                t('notifications.title'),
-                body,
-                { tag: 'manual-test' }
-              ),
-              trigger: {
-                type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
-                seconds: 5,
-                channelId: HABITS_CHANNEL_ID,
-              },
-            });
-
-            setTimeout(refreshNotificationDebug, 500);
-          }}
-        >
-          {t('settings.test_notification_5s')}
-        </Button>
-      </List.Section>
-
-      <List.Section>
-        <List.Item
-          title={t('settings.debug_notifications')}
-          description={t('settings.debug_status', { permission: debugPermission, count: debugScheduled.length })}
-        />
-        <Button mode="outlined" onPress={refreshNotificationDebug}>
-          {t('settings.debug_refresh')}
-        </Button>
-        {debugScheduled.slice(0, 8).map((item) => (
-          <List.Item
-            key={item.id}
-            title={`${item.title} (${item.trigger})`}
-            description={t('settings.debug_item', { tag: item.tag, id: item.id })}
-          />
-        ))}
+              await configureAndroidChannel();
+              setHasNotificationPermission(true);
+            }}
+          >
+            {t('settings.enable_notifications')}
+          </Button>
+        )}
       </List.Section>
     </FancyHeaderLayout>
   );

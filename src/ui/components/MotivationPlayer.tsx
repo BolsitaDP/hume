@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Image, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import WebView from 'react-native-webview';
 import * as WebBrowser from 'expo-web-browser';
 
 import { MotivationItem } from '../../store/motivation.store';
-import { getTikTokEmbedUrl, getYouTubeEmbedUrl } from '../../utils/motivation';
+import { getYouTubeEmbedUrl } from '../../utils/motivation';
 import AudioPlayer from './AudioPlayer';
 
 type Props = {
@@ -14,12 +14,6 @@ type Props = {
 };
 
 export default function MotivationPlayer({ item, onFallbackOpen }: Props) {
-  const [tiktokFailed, setTikTokFailed] = useState(false);
-
-  useEffect(() => {
-    setTikTokFailed(false);
-  }, [item?.id]);
-
   if (!item) return null as any;
 
   if (item.kind === 'youtube') {
@@ -38,41 +32,32 @@ export default function MotivationPlayer({ item, onFallbackOpen }: Props) {
   }
 
   if (item.kind === 'tiktok') {
-    const [timedOut, setTimedOut] = useState(false);
-    useEffect(() => {
-      const id = setTimeout(() => setTimedOut(true), 4000);
-      return () => clearTimeout(id);
-    }, [item?.id]);
-
-    const uri = getTikTokEmbedUrl(item.url);
-    const showFallback = tiktokFailed || timedOut;
-
     return (
-      <View>
-        {showFallback ? (
-          <Button
-            mode="contained"
-            icon="open-in-new"
-            onPress={async () => {
-              await WebBrowser.openBrowserAsync(item.url);
-              onFallbackOpen?.();
-            }}
-          >
-            Open externally
-          </Button>
-        ) : (
-          <View style={{ height: 420, borderRadius: 6, overflow: 'hidden' }}>
-            <WebView
-              source={{ uri }}
-              onError={() => setTikTokFailed(true)}
-              onHttpError={() => setTikTokFailed(true)}
-              javaScriptEnabled
-              domStorageEnabled
-              allowsInlineMediaPlayback
-            />
-          </View>
-        )}
-      </View>
+      <Button
+        mode="contained"
+        icon="open-in-new"
+        onPress={async () => {
+          await WebBrowser.openBrowserAsync(item.url);
+          onFallbackOpen?.();
+        }}
+      >
+        Open externally
+      </Button>
+    );
+  }
+
+  if (item.kind === 'instagram') {
+    return (
+      <Button
+        mode="contained"
+        icon="open-in-new"
+        onPress={async () => {
+          await WebBrowser.openBrowserAsync(item.url);
+          onFallbackOpen?.();
+        }}
+      >
+        Open externally
+      </Button>
     );
   }
 

@@ -1,6 +1,6 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { Button, Card, Divider, Text, useTheme } from 'react-native-paper';
+import { Button, Text, useTheme } from 'react-native-paper';
 
 import HabitCard from '../ui/components/HabitCard';
 import AnimatedFab from '../ui/components/AnimatedFab';
@@ -8,7 +8,7 @@ import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 import { useHabitsStore } from '../store/habits.store';
 
 import { t } from '../i18n';
-import { isHabitActiveNow, isHabitScheduledToday, isTimeReached } from '../utils/schedule';
+import { isHabitScheduledToday } from '../utils/schedule';
 
 export default function HomeScreen({ navigation }: any) {
   const { habits, hydrated, hydrate, toggleToday } = useHabitsStore();
@@ -18,18 +18,9 @@ export default function HomeScreen({ navigation }: any) {
     hydrate();
   }, [ hydrate ]);
 
-  const { active, upcoming } = useMemo(() => {
+  const habitsToday = useMemo(() => {
     const now = new Date();
-
-    const activeHabits = habits.filter((h) =>
-      isHabitActiveNow(h.schedule.days, h.schedule.time, now)
-    );
-
-    const upcomingHabits = habits.filter((h) =>
-      isHabitScheduledToday(h.schedule.days, now) && !isTimeReached(h.schedule.time, now)
-    );
-
-    return { active: activeHabits, upcoming: upcomingHabits };
+    return habits.filter((h) => isHabitScheduledToday(h.schedule.days, now));
   }, [ habits ]);
 
   // FAB shrink/expand
@@ -65,29 +56,10 @@ export default function HomeScreen({ navigation }: any) {
           </View>
         ) : (
           <>
-            {active.length === 0 ? (
-              <Text style={{ marginBottom: 12 }}>{t('home.no_active')}</Text>
-            ) : (
-              active.map((h) => (
-                <HabitCard
-                  key={h.id}
-                  habit={h}
-                  onToggleToday={() => toggleToday(h.id)}
-                  onPress={() => navigation.navigate('HabitDetail', { habitId: h.id })}
-                />
-              ))
-            )}
-
-            <Divider style={{ marginVertical: 12 }} />
-
-            <Text variant="titleMedium" style={{ marginBottom: 8 }}>
-              {t('home.sections.upcoming')}
-            </Text>
-
-            {upcoming.length === 0 ? (
+            {habitsToday.length === 0 ? (
               <Text style={{ marginBottom: 12 }}>{t('home.no_upcoming')}</Text>
             ) : (
-              upcoming.map((h) => (
+              habitsToday.map((h) => (
                 <HabitCard
                   key={h.id}
                   habit={h}
@@ -96,7 +68,6 @@ export default function HomeScreen({ navigation }: any) {
                 />
               ))
             )}
-
           </>
         )}
       </FancyHeaderLayout>
@@ -124,15 +95,3 @@ export default function HomeScreen({ navigation }: any) {
     </View>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
