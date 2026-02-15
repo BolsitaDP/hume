@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { List, Button, Portal, Dialog, RadioButton } from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
+import * as WebBrowser from 'expo-web-browser';
 
 import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 import { t } from '../i18n';
 import { useSettingsStore } from '../store/settings.store';
 import { ensureNotificationPermission, configureAndroidChannel } from '../services/notifications';
+
+const LEGAL_LINKS = {
+  // TODO: Replace <your-username> and <repo-name> with your GitHub Pages values.
+  privacyPolicy: 'https://<your-username>.github.io/<repo-name>/privacy.html',
+  termsOfService: 'https://<your-username>.github.io/<repo-name>/terms.html',
+  dataDeletion: 'https://<your-username>.github.io/<repo-name>/data-deletion.html',
+  support: 'mailto:your-support@email.com',
+};
 
 export default function SettingsScreen({ }) {
   const {
@@ -35,6 +44,14 @@ export default function SettingsScreen({ }) {
   useEffect(() => {
     refreshNotificationPermission();
   }, []);
+
+  const openExternal = async (url: string) => {
+    try {
+      await WebBrowser.openBrowserAsync(url);
+    } catch {
+      // no-op
+    }
+  };
 
   return (
     <FancyHeaderLayout
@@ -116,6 +133,31 @@ export default function SettingsScreen({ }) {
             {t('settings.enable_notifications')}
           </Button>
         )}
+      </List.Section>
+
+      {/* Legal / Play Store */}
+      <List.Section>
+        <List.Subheader>{t('settings.legal_section')}</List.Subheader>
+        <List.Item
+          title={t('settings.privacy_policy')}
+          description={t('settings.privacy_policy_hint')}
+          onPress={() => openExternal(LEGAL_LINKS.privacyPolicy)}
+        />
+        <List.Item
+          title={t('settings.data_deletion')}
+          description={t('settings.data_deletion_hint')}
+          onPress={() => openExternal(LEGAL_LINKS.dataDeletion)}
+        />
+        <List.Item
+          title={t('settings.terms_of_service')}
+          description={t('settings.terms_of_service_hint')}
+          onPress={() => openExternal(LEGAL_LINKS.termsOfService)}
+        />
+        <List.Item
+          title={t('settings.support')}
+          description={t('settings.support_hint')}
+          onPress={() => openExternal(LEGAL_LINKS.support)}
+        />
       </List.Section>
     </FancyHeaderLayout>
   );
