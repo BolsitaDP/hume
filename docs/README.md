@@ -18,13 +18,13 @@ These files are ready to publish as public legal URLs for Google Play:
 
 GitHub will generate a URL like:
 
-`https://<your-username>.github.io/<repo-name>/`
+`https://bolsitadp.github.io/hume/`
 
 Your legal URLs will be:
 
-- `https://<your-username>.github.io/<repo-name>/privacy.html`
-- `https://<your-username>.github.io/<repo-name>/terms.html`
-- `https://<your-username>.github.io/<repo-name>/data-deletion.html`
+- `https://bolsitadp.github.io/hume/privacy.html`
+- `https://bolsitadp.github.io/hume/terms.html`
+- `https://bolsitadp.github.io/hume/data-deletion.html`
 
 ## Before going live
 

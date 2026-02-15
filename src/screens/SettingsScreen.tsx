@@ -9,11 +9,10 @@ import { useSettingsStore } from '../store/settings.store';
 import { ensureNotificationPermission, configureAndroidChannel } from '../services/notifications';
 
 const LEGAL_LINKS = {
-  // TODO: Replace <your-username> and <repo-name> with your GitHub Pages values.
-  privacyPolicy: 'https://<your-username>.github.io/<repo-name>/privacy.html',
-  termsOfService: 'https://<your-username>.github.io/<repo-name>/terms.html',
-  dataDeletion: 'https://<your-username>.github.io/<repo-name>/data-deletion.html',
-  support: 'mailto:your-support@email.com',
+  privacyPolicy: 'https://bolsitadp.github.io/hume/privacy.html',
+  termsOfService: 'https://bolsitadp.github.io/hume/terms.html',
+  dataDeletion: 'https://bolsitadp.github.io/hume/data-deletion.html',
+  support: 'mailto:sgiraldo118@gmail.com',
 };
 
 export default function SettingsScreen({ }) {
