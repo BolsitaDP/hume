@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
-import { Text, Card, Chip, Divider, useTheme, IconButton, Button } from 'react-native-paper';
+import { Alert, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Button, Card, Chip, Divider, IconButton, Text, useTheme } from 'react-native-paper';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -12,6 +12,8 @@ import { formatScheduleLabel } from '../utils/schedule';
 import { todayKey as makeTodayKey } from '../utils/date';
 import { t } from '../i18n';
 import FancyHeaderBackLayout from '../ui/layouts/FancyHeaderBackLayout';
+import { AppTheme } from '../ui/theme';
+import { glassPanel, withAlpha } from '../ui/glass';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'HabitDetail'>;
 
@@ -19,23 +21,24 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
   const { habitId } = route.params;
   const { habits, removeHabit, toggleToday, toggleCompletionForDate } = useHabitsStore();
   const locale = useSettingsStore((s) => s.locale);
-  const theme = useTheme();
+  const theme = useTheme() as AppTheme;
   const [ currentMonth, setCurrentMonth ] = useState(new Date());
 
-  const habit = useMemo(() => habits.find(h => h.id === habitId), [ habits, habitId ]);
+  const habit = useMemo(() => habits.find((h) => h.id === habitId), [ habits, habitId ]);
 
   if (!habit) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 16 }}>
-        <Text variant="bodyLarge">{t('habit_detail.not_found')}</Text>
+        <View style={{ ...glassPanel(theme, 'soft'), padding: 20 }}>
+          <Text variant="bodyLarge">{t('habit_detail.not_found')}</Text>
+        </View>
       </View>
     );
   }
 
-  const categoryColor = getCategoryColor(habit.category, theme as any);
+  const categoryColor = getCategoryColor(habit.category, theme);
   const scheduleLabel = formatScheduleLabel(habit.schedule.days, habit.schedule.time);
 
-  // Check if completed today
   const isCompletedToday = useMemo(() => {
     const todayKey = makeTodayKey();
     return habit.completions[ todayKey ] === true;
@@ -68,7 +71,6 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
 
   const handleToggleToday = () => {
     if (isCompletedToday) {
-      // Show confirmation when marking as incomplete
       Alert.alert(
         t('habit_detail.mark_incomplete_confirm_title'),
         t('habit_detail.mark_incomplete_confirm_message'),
@@ -84,10 +86,10 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
           },
         ]
       );
-    } else {
-      // Mark as complete without confirmation
-      toggleToday(habitId);
+      return;
     }
+
+    toggleToday(habitId);
   };
 
   const handleToggleCalendarDay = (dateKey: string, isCompleted: boolean) => {
@@ -102,6 +104,7 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
     const messageTemplate = isCompleted
       ? t('habit_detail.confirm_mark_incomplete_message')
       : t('habit_detail.confirm_mark_complete_message');
+
     const message = String(messageTemplate)
       .replace('{date}', dateLabel)
       .replace('%{date}', dateLabel);
@@ -123,7 +126,6 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
     );
   };
 
-  // Calculate statistics
   const completionDates = Object.entries(habit.completions)
     .filter(([ _, completed ]) => completed)
     .map(([ date ]) => date)
@@ -132,7 +134,6 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
 
   const totalCompletions = completionDates.length;
 
-  // Calculate current streak
   let currentStreak = 0;
   const today = new Date();
   for (let i = 0; i < 100; i++) {
@@ -149,50 +150,62 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
 
   return (
     <FancyHeaderBackLayout title={habit.title} onBack={() => navigation.goBack()}>
-      {/* Header Card */}
-      <Card style={{ marginBottom: 16, backgroundColor: categoryColor }}>
+      <Card
+        style={{
+          ...glassPanel(theme, 'medium'),
+          marginBottom: 14,
+          backgroundColor: withAlpha(categoryColor, theme.dark ? 0.36 : 0.64),
+        }}
+      >
         <Card.Content>
           <View style={styles.headerContent}>
-            <MaterialCommunityIcons
-              name="trophy"
-              size={48}
-              color={theme.colors.primary}
-            />
-            <View style={{ flex: 1, marginLeft: 16 }}>
+            <View
+              style={{
+                ...glassPanel(theme, 'soft'),
+                width: 56,
+                height: 56,
+                borderRadius: 18,
+                justifyContent: 'center',
+                alignItems: 'center',
+                backgroundColor: theme.colors.elevation.level2,
+              }}
+            >
+              <MaterialCommunityIcons name="trophy" size={30} color={theme.colors.primary} />
+            </View>
+
+            <View style={{ flex: 1, marginLeft: 14 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                <Text variant="headlineSmall" style={{ fontWeight: '600' }}>
+                <Text variant="headlineSmall" style={{ fontWeight: '800', color: theme.colors.onSurface }}>
                   {habit.title}
                 </Text>
                 <IconButton
                   icon="pencil"
-                  size={20}
+                  size={18}
                   onPress={handleEdit}
-                  iconColor={theme.dark ? '#CCC' : '#555'}
+                  iconColor={theme.colors.primary}
                   style={{ margin: 0 }}
                 />
               </View>
+
               <Chip
-                mode="outlined"
-                style={{ alignSelf: 'flex-start', marginTop: 8 }}
+                mode="flat"
+                style={{ alignSelf: 'flex-start', marginTop: 8, backgroundColor: withAlpha(theme.colors.primary, 0.16) }}
+                textStyle={{ color: theme.colors.onSurface, fontWeight: '600' }}
               >
                 {t(`categories.${habit.category}`)}
               </Chip>
             </View>
-            <IconButton
-              icon="delete"
-              size={24}
-              onPress={handleDelete}
-              iconColor={theme.colors.error}
-            />
+
+            <IconButton icon="delete" size={22} onPress={handleDelete} iconColor={theme.colors.error} />
           </View>
 
-          {/* Today's completion toggle */}
-          <Divider style={{ marginVertical: 16 }} />
+          <Divider style={{ marginVertical: 16, backgroundColor: withAlpha(theme.colors.outlineVariant, 0.72) }} />
+
           <View style={styles.todayToggleContainer}>
             <Button
               mode="contained"
               onPress={handleToggleToday}
-              style={{ borderRadius: 20 }}
+              style={{ borderRadius: 14 }}
               buttonColor={isCompletedToday ? theme.colors.error : theme.colors.primary}
               textColor={isCompletedToday ? theme.colors.onError : theme.colors.onPrimary}
             >
@@ -202,8 +215,13 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
         </Card.Content>
       </Card>
 
-      {/* Calendar View */}
-      <Card style={{ marginBottom: 16 }}>
+      <Card
+        style={{
+          ...glassPanel(theme, 'medium'),
+          marginBottom: 14,
+          backgroundColor: theme.colors.elevation.level2,
+        }}
+      >
         <Card.Content>
           <View style={styles.calendarHeader}>
             <TouchableOpacity
@@ -213,10 +231,10 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
                 setCurrentMonth(newMonth);
               }}
             >
-              <MaterialCommunityIcons name="chevron-left" size={28} color={theme.colors.primary} />
+              <MaterialCommunityIcons name="chevron-left" size={30} color={theme.colors.primary} />
             </TouchableOpacity>
 
-            <Text variant="titleMedium" style={{ fontWeight: '600' }}>
+            <Text variant="titleMedium" style={{ fontWeight: '700', color: theme.colors.onSurface }}>
               {currentMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
             </Text>
 
@@ -227,11 +245,10 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
                 setCurrentMonth(newMonth);
               }}
             >
-              <MaterialCommunityIcons name="chevron-right" size={28} color={theme.colors.primary} />
+              <MaterialCommunityIcons name="chevron-right" size={30} color={theme.colors.primary} />
             </TouchableOpacity>
           </View>
 
-          {/* Day headers */}
           <View style={styles.weekDaysContainer}>
             {[
               t('week_short.sun'),
@@ -243,80 +260,75 @@ export default function HabitDetailScreen({ route, navigation }: Props) {
               t('week_short.sat'),
             ].map((day, i) => (
               <View key={i} style={styles.dayHeader}>
-                <Text variant="labelSmall" style={{ fontWeight: '600', opacity: 0.6 }}>
+                <Text variant="labelSmall" style={{ fontWeight: '700', opacity: 0.72, color: theme.colors.onSurfaceVariant }}>
                   {day}
                 </Text>
               </View>
             ))}
           </View>
 
-          {/* Calendar days */}
-          {renderCalendar(
-            currentMonth,
-            habit.completions,
-            habit.schedule.days,
-            theme,
-            categoryColor,
-            handleToggleCalendarDay
-          )}
+          {renderCalendar(currentMonth, habit.completions, habit.schedule.days, theme, categoryColor, handleToggleCalendarDay)}
         </Card.Content>
       </Card>
 
-      {/* Statistics Cards */}
       <View style={styles.statsContainer}>
-        <Card style={styles.statCard}>
+        <Card
+          style={{
+            ...styles.statCard,
+            ...glassPanel(theme, 'soft'),
+            backgroundColor: theme.colors.elevation.level2,
+          }}
+        >
           <Card.Content style={styles.statContent}>
-            <MaterialCommunityIcons
-              name="fire"
-              size={32}
-              color={theme.colors.primary}
-            />
-            <Text variant="displaySmall" style={{ fontWeight: '700', marginTop: 8 }}>
+            <MaterialCommunityIcons name="fire" size={30} color={theme.colors.primary} />
+            <Text variant="displaySmall" style={{ fontWeight: '800', marginTop: 8, color: theme.colors.onSurface }}>
               {currentStreak}
             </Text>
-            <Text variant="bodySmall" style={{ opacity: 0.7 }}>
+            <Text variant="bodySmall" style={{ opacity: 0.74, color: theme.colors.onSurfaceVariant }}>
               {t('habit_detail.current_streak')}
             </Text>
           </Card.Content>
         </Card>
 
-        <Card style={styles.statCard}>
+        <Card
+          style={{
+            ...styles.statCard,
+            ...glassPanel(theme, 'soft'),
+            backgroundColor: theme.colors.elevation.level2,
+          }}
+        >
           <Card.Content style={styles.statContent}>
-            <MaterialCommunityIcons
-              name="check-circle"
-              size={32}
-              color={theme.colors.success}
-            />
-            <Text variant="displaySmall" style={{ fontWeight: '700', marginTop: 8 }}>
+            <MaterialCommunityIcons name="check-circle" size={30} color={theme.colors.success} />
+            <Text variant="displaySmall" style={{ fontWeight: '800', marginTop: 8, color: theme.colors.onSurface }}>
               {totalCompletions}
             </Text>
-            <Text variant="bodySmall" style={{ opacity: 0.7 }}>
+            <Text variant="bodySmall" style={{ opacity: 0.74, color: theme.colors.onSurfaceVariant }}>
               {t('habit_detail.total_completions')}
             </Text>
           </Card.Content>
         </Card>
       </View>
 
-      {/* Schedule Info */}
-      <Card style={{ marginBottom: 16 }}>
+      <Card
+        style={{
+          ...glassPanel(theme, 'soft'),
+          marginBottom: 14,
+          backgroundColor: theme.colors.elevation.level2,
+        }}
+      >
         <Card.Content>
-          <Text variant="titleMedium" style={{ fontWeight: '600', marginBottom: 12 }}>
+          <Text variant="titleMedium" style={{ fontWeight: '700', marginBottom: 10, color: theme.colors.onSurface }}>
             {t('habit_detail.schedule')}
           </Text>
+
           <View style={styles.infoRow}>
-            <MaterialCommunityIcons
-              name="calendar"
-              size={20}
-              color={theme.colors.onSurfaceVariant}
-            />
-            <Text variant="bodyMedium" style={{ marginLeft: 12 }}>
+            <MaterialCommunityIcons name="calendar" size={20} color={theme.colors.onSurfaceVariant} />
+            <Text variant="bodyMedium" style={{ marginLeft: 10, color: theme.colors.onSurfaceVariant }}>
               {scheduleLabel}
             </Text>
           </View>
         </Card.Content>
       </Card>
-
-
     </FancyHeaderBackLayout>
   );
 }
@@ -325,7 +337,7 @@ function renderCalendar(
   currentMonth: Date,
   completions: Record<string, boolean>,
   scheduledDays: WeekDay[],
-  theme: any,
+  theme: AppTheme,
   categoryColor: string,
   onDayPress: (dateKey: string, isCompleted: boolean) => void
 ) {
@@ -335,21 +347,18 @@ function renderCalendar(
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
 
-  // Get first day of month and total days
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
-  const startingDayOfWeek = firstDay.getDay(); // 0 = Sunday
+  const startingDayOfWeek = firstDay.getDay();
 
   const weeks = [];
   let currentWeek = [];
 
-  // Add empty cells for days before month starts
   for (let i = 0; i < startingDayOfWeek; i++) {
     currentWeek.push(null);
   }
 
-  // Add all days of the month
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(year, month, day);
     date.setHours(0, 0, 0, 0);
@@ -367,14 +376,12 @@ function renderCalendar(
       dateKey,
     });
 
-    // If week is complete (7 days), start a new week
     if (currentWeek.length === 7) {
       weeks.push(currentWeek);
       currentWeek = [];
     }
   }
 
-  // Fill remaining cells in last week
   while (currentWeek.length > 0 && currentWeek.length < 7) {
     currentWeek.push(null);
   }
@@ -389,30 +396,31 @@ function renderCalendar(
           {week.map((dayInfo, dayIndex) => (
             <TouchableOpacity
               key={dayIndex}
-              activeOpacity={0.8}
+              activeOpacity={0.84}
               disabled={!dayInfo || !!dayInfo.isFuture}
               onPress={() => dayInfo && onDayPress(dayInfo.dateKey, !!dayInfo.isCompleted)}
               style={[
                 styles.dayCell,
                 dayInfo?.isScheduled && !dayInfo?.isCompleted && {
-                  borderWidth: 1.5,
-                  borderColor: darkenColor(categoryColor, 0.15),
-                  borderRadius: 100,
+                  borderWidth: 1.4,
+                  borderColor: darkenColor(categoryColor, 0.2),
+                  borderRadius: 999,
                 },
                 dayInfo?.isCompleted && {
                   backgroundColor: categoryColor,
-                  borderWidth: 1.5,
+                  borderWidth: 1.4,
                   borderColor: categoryColor,
-                  borderRadius: 100,
-                }
+                  borderRadius: 999,
+                },
               ]}
             >
               {dayInfo && (
                 <Text
                   variant="bodyMedium"
                   style={{
-                    fontWeight: dayInfo.isCompleted ? '700' : '400',
+                    fontWeight: dayInfo.isCompleted ? '800' : '500',
                     color: dayInfo.isCompleted ? theme.colors.onSurface : theme.colors.onSurface,
+                    opacity: dayInfo.isFuture ? 0.42 : 1,
                   }}
                 >
                   {dayInfo.day}
@@ -450,12 +458,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   todayToggleContainer: {
-    paddingVertical: 8,
+    paddingVertical: 2,
   },
   statsContainer: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 16,
+    marginBottom: 14,
   },
   statCard: {
     flex: 1,
@@ -469,16 +477,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 4,
   },
-  historyItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 4,
-  },
   calendarHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   weekDaysContainer: {
     flexDirection: 'row',
@@ -487,7 +490,7 @@ const styles = StyleSheet.create({
   dayHeader: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 7,
   },
   calendarGrid: {
     gap: 4,
@@ -503,12 +506,3 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
-
-
-
-
-
-
-
-

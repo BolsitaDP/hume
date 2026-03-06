@@ -1,34 +1,36 @@
-﻿import React, { useMemo, useRef } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { Animated, Dimensions, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
+
 import FancyHeader from '../components/FancyHeader';
+import { AppTheme } from '../theme';
 
 interface FancyHeaderLayoutProps {
   title?: string;
   subtitle?: string;
-  headerChildren?: React.ReactNode; // si se pasa, reemplaza title/subtitle
-  expandedPct?: number; // 0.25 por defecto
-  collapsedPct?: number; // 0.10 por defecto
-  scrollDistance?: number; // píxeles para comprimir, 120 por defecto
-  contentPadding?: number; // 16 por defecto
-  bottomPadding?: number; // 120 por defecto
-  isEmpty?: boolean; // para centrar verticalmente
+  headerChildren?: React.ReactNode;
+  expandedPct?: number;
+  collapsedPct?: number;
+  scrollDistance?: number;
+  contentPadding?: number;
+  bottomPadding?: number;
+  isEmpty?: boolean;
   headerColor?: string;
   collapsedTitleOffset?: number;
   collapsedSubtitleOffset?: number;
   children: React.ReactNode;
-  onScrollY?: (y: number) => void; // callback para que pantallas reaccionen
+  onScrollY?: (y: number) => void;
 }
 
 export default function FancyHeaderLayout({
   title,
   subtitle,
   headerChildren,
-  expandedPct = 0.20,
-  collapsedPct = 0.10,
-  scrollDistance = 80,
+  expandedPct = 0.21,
+  collapsedPct = 0.11,
+  scrollDistance = 90,
   contentPadding = 16,
-  bottomPadding = 10,
+  bottomPadding = 120,
   isEmpty,
   headerColor,
   collapsedTitleOffset = 10,
@@ -37,14 +39,14 @@ export default function FancyHeaderLayout({
   onScrollY,
 }: FancyHeaderLayoutProps) {
   const scrollY = useRef(new Animated.Value(0)).current;
-  const theme = useTheme() as any;
+  const theme = useTheme() as AppTheme;
 
   const screenHeight = Dimensions.get('window').height;
-  const HEADER_EXPANDED = Math.round(screenHeight * expandedPct);
-  const HEADER_COLLAPSED = Math.round(screenHeight * collapsedPct);
+  const headerExpanded = Math.round(screenHeight * expandedPct);
+  const headerCollapsed = Math.round(screenHeight * collapsedPct);
   const headerHeight = scrollY.interpolate({
     inputRange: [ 0, scrollDistance ],
-    outputRange: [ HEADER_EXPANDED, HEADER_COLLAPSED ],
+    outputRange: [ headerExpanded, headerCollapsed ],
     extrapolate: 'clamp',
   });
 
@@ -56,7 +58,7 @@ export default function FancyHeaderLayout({
 
   const titleTranslateY = scrollY.interpolate({
     inputRange: [ 0, scrollDistance ],
-    outputRange: [ 10, collapsedTitleOffset ],
+    outputRange: [ 8, collapsedTitleOffset ],
     extrapolate: 'clamp',
   });
 
@@ -69,7 +71,7 @@ export default function FancyHeaderLayout({
   const onScroll = useMemo(
     () =>
       Animated.event([ { nativeEvent: { contentOffset: { y: scrollY } } } ], {
-        useNativeDriver: false, // animamos height/opacity
+        useNativeDriver: false,
         listener: (e: any) => {
           const y = e?.nativeEvent?.contentOffset?.y ?? 0;
           onScrollY?.(y);
@@ -79,9 +81,10 @@ export default function FancyHeaderLayout({
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: 'transparent' }}>
       <Animated.ScrollView
         contentInsetAdjustmentBehavior="never"
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           padding: contentPadding,
           paddingBottom: bottomPadding,
@@ -91,30 +94,28 @@ export default function FancyHeaderLayout({
         onScroll={onScroll}
         scrollEventThrottle={16}
       >
-        {/* Espaciador para que el contenido arranque bajo el header */}
         <Animated.View style={{ height: headerHeight as any, marginHorizontal: -contentPadding }} />
-
         {children}
       </Animated.ScrollView>
 
-      {/* Header fijo y visible siempre */}
       <FancyHeader
         height={headerHeight}
-        color={headerColor}
+        color={headerColor ?? theme.colors.header}
         style={{ position: 'absolute', top: 0, left: 0, right: 0 }}
       >
         {headerChildren ?? (
           <>
             {!!title && (
               <Animated.View style={{ transform: [ { translateY: titleTranslateY } ] }}>
-                <Text variant="headlineMedium" style={{ color: theme.colors.onHeader, fontWeight: '700' }}>
+                <Text variant="headlineMedium" style={{ color: theme.colors.onHeader, fontWeight: '800' }}>
                   {title}
                 </Text>
               </Animated.View>
             )}
+
             {!!subtitle && (
               <Animated.View style={{ opacity: subtitleOpacity, transform: [ { translateY: subtitleTranslateY } ] }}>
-                <Text variant="bodyMedium" style={{ color: theme.colors.onHeader, opacity: 0.85, marginTop: 4 }}>
+                <Text variant="bodyMedium" style={{ color: theme.colors.onHeader, opacity: 0.86, marginTop: 6 }}>
                   {subtitle}
                 </Text>
               </Animated.View>

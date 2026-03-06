@@ -1,26 +1,38 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, View } from 'react-native';
-import { Avatar, Button, Card, Dialog, IconButton, Portal, SegmentedButtons, Text, TextInput, useTheme } from 'react-native-paper';
+import {
+  Avatar,
+  Button,
+  Card,
+  Dialog,
+  IconButton,
+  Portal,
+  SegmentedButtons,
+  Text,
+  TextInput,
+  useTheme,
+} from 'react-native-paper';
 
 import { t } from '../i18n';
-import { useMotivationStore, MotivationItem } from '../store/motivation.store';
+import { MotivationItem, useMotivationStore } from '../store/motivation.store';
 import MotivationPlayer from '../ui/components/MotivationPlayer';
 import FancyHeaderBackLayout from '../ui/layouts/FancyHeaderBackLayout';
+import { AppTheme } from '../ui/theme';
+import { glassPanel, withAlpha } from '../ui/glass';
 
 export default function UrgentMotivationScreen({ navigation }: any) {
-  const theme = useTheme();
-  const softButtonColor = (theme as any).colors.primaryContainer ?? (theme as any).colors.secondaryContainer;
-  const softTextColor = (theme as any).colors.onPrimaryContainer ?? (theme as any).colors.onSecondaryContainer;
-  const softBorderColor = (theme as any).colors.outlineVariant ?? theme.colors.outline;
+  const theme = useTheme() as AppTheme;
+  const softButtonColor = withAlpha(theme.colors.primaryContainer, theme.dark ? 0.58 : 0.8);
+  const softTextColor = theme.colors.onPrimaryContainer;
+  const softBorderColor = withAlpha(theme.colors.outlineVariant, 0.8);
   const { items, hydrated, hydrate, removeItem, getRandomItem, updateTitle } = useMotivationStore();
+
   const [ filter, setFilter ] = useState<'all' | 'videos' | 'images' | 'audio'>('all');
   const [ current, setCurrent ] = useState<MotivationItem | null>(null);
-
   const [ editVisible, setEditVisible ] = useState(false);
   const [ editId, setEditId ] = useState<string | null>(null);
   const [ editValue, setEditValue ] = useState('');
   const [ infoVisible, setInfoVisible ] = useState(false);
-
   const [ confirmVisible, setConfirmVisible ] = useState(false);
   const [ confirmId, setConfirmId ] = useState<string | null>(null);
 
@@ -33,7 +45,7 @@ export default function UrgentMotivationScreen({ navigation }: any) {
       return (
         <Image
           source={{ uri: item.thumbnailUrl }}
-          style={{ width: 40, height: 40, borderRadius: 8, marginLeft: 8 }}
+          style={{ width: 40, height: 40, borderRadius: 10, marginLeft: 8 }}
           resizeMode="cover"
         />
       );
@@ -43,7 +55,7 @@ export default function UrgentMotivationScreen({ navigation }: any) {
       <Avatar.Icon
         size={40}
         icon={isVideoKind(item) ? 'play-circle-outline' : item.kind === 'audio' ? 'music-note-outline' : 'image-outline'}
-        style={{ marginLeft: 8 }}
+        style={{ marginLeft: 8, backgroundColor: withAlpha(theme.colors.primary, 0.18) }}
       />
     );
   }
@@ -74,7 +86,9 @@ export default function UrgentMotivationScreen({ navigation }: any) {
     setConfirmId(null);
   }
 
-  useEffect(() => { hydrate(); }, [ hydrate ]);
+  useEffect(() => {
+    hydrate();
+  }, [ hydrate ]);
 
   const filtered = useMemo(() => {
     if (filter === 'all') return items;
@@ -86,7 +100,7 @@ export default function UrgentMotivationScreen({ navigation }: any) {
   return (
     <View style={{ flex: 1 }}>
       <FancyHeaderBackLayout title={t('motivation.title')} onBack={() => navigation.goBack()}>
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 4, marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', gap: 6, marginBottom: 12 }}>
           <Button mode="contained" icon="plus" buttonColor={theme.colors.primary} textColor={theme.colors.onPrimary} onPress={() => navigation.navigate('AddMotivationItem')}>
             {t('motivation.add')}
           </Button>
@@ -100,10 +114,16 @@ export default function UrgentMotivationScreen({ navigation }: any) {
         </View>
 
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 8 }}>
-          <Button mode="contained-tonal" icon="shuffle" buttonColor={softButtonColor} textColor={softTextColor} onPress={() => {
-            const pick = getRandomItem();
-            if (pick) setCurrent(pick);
-          }}>
+          <Button
+            mode="contained-tonal"
+            icon="shuffle"
+            buttonColor={softButtonColor}
+            textColor={softTextColor}
+            onPress={() => {
+              const pick = getRandomItem();
+              if (pick) setCurrent(pick);
+            }}
+          >
             {t('motivation.random')}
           </Button>
         </View>
@@ -141,7 +161,14 @@ export default function UrgentMotivationScreen({ navigation }: any) {
         />
 
         {current && (
-          <Card style={{ marginVertical: 12, borderRadius: 6 }}>
+          <Card
+            style={{
+              ...glassPanel(theme, 'strong'),
+              marginVertical: 12,
+              borderRadius: 20,
+              backgroundColor: theme.colors.elevation.level3,
+            }}
+          >
             <Card.Title
               left={() => renderItemThumb(current)}
               title={<Text onPress={() => startEdit(current)}>{current.title || current.url}</Text>}
@@ -153,37 +180,62 @@ export default function UrgentMotivationScreen({ navigation }: any) {
           </Card>
         )}
 
-        {!hydrated ? <Text>{t('common.loading')}</Text> : filtered.length === 0 ? <Text>{t('motivation.empty')}</Text> : filtered.map((item) => (
-          <Card key={item.id} style={{ marginBottom: 12, borderRadius: 6 }} onPress={() => setCurrent(item)}>
-            <Card.Title
-              left={() => renderItemThumb(item)}
-              title={<Text onPress={() => startEdit(item)}>{item.title || item.url}</Text>}
-              subtitle={item.kind.toUpperCase()}
-              right={() => (
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <IconButton icon="pencil" iconColor={(theme as any).colors.primary} onPress={() => startEdit(item)} />
-                </View>
-              )}
-            />
-            <Card.Actions>
-              <Button
-                mode="contained"
-                icon="delete"
-                buttonColor={theme.colors.error}
-                textColor={theme.colors.onError}
-                onPress={() => confirmDelete(item.id)}
-              >
-                {t('motivation.delete')}
-              </Button>
-              <View style={{ flex: 1 }} />
-              <Button mode="contained-tonal" buttonColor={softButtonColor} textColor={softTextColor} onPress={() => setCurrent(item)}>{t('motivation.open')}</Button>
-            </Card.Actions>
-          </Card>
-        ))}
+        {!hydrated ? (
+          <Text>{t('common.loading')}</Text>
+        ) : filtered.length === 0 ? (
+          <Text>{t('motivation.empty')}</Text>
+        ) : (
+          filtered.map((item) => (
+            <Card
+              key={item.id}
+              style={{
+                ...glassPanel(theme, 'soft'),
+                marginBottom: 12,
+                borderRadius: 18,
+                backgroundColor: theme.colors.elevation.level2,
+              }}
+              onPress={() => setCurrent(item)}
+            >
+              <Card.Title
+                left={() => renderItemThumb(item)}
+                title={<Text onPress={() => startEdit(item)}>{item.title || item.url}</Text>}
+                subtitle={item.kind.toUpperCase()}
+                right={() => (
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <IconButton icon="pencil" iconColor={theme.colors.primary} onPress={() => startEdit(item)} />
+                  </View>
+                )}
+              />
+              <Card.Actions>
+                <Button
+                  mode="contained"
+                  icon="delete"
+                  buttonColor={theme.colors.error}
+                  textColor={theme.colors.onError}
+                  onPress={() => confirmDelete(item.id)}
+                >
+                  {t('motivation.delete')}
+                </Button>
+                <View style={{ flex: 1 }} />
+                <Button mode="contained-tonal" buttonColor={softButtonColor} textColor={softTextColor} onPress={() => setCurrent(item)}>
+                  {t('motivation.open')}
+                </Button>
+              </Card.Actions>
+            </Card>
+          ))
+        )}
       </FancyHeaderBackLayout>
 
       <Portal>
-        <Dialog visible={infoVisible} onDismiss={() => setInfoVisible(false)} style={{ borderRadius: 20 }}>
+        <Dialog
+          visible={infoVisible}
+          onDismiss={() => setInfoVisible(false)}
+          style={{
+            ...glassPanel(theme, 'strong'),
+            borderRadius: 22,
+            backgroundColor: theme.colors.elevation.level3,
+          }}
+        >
           <Dialog.Title>{t('motivation.info_title')}</Dialog.Title>
           <Dialog.Content>
             <Text>{t('motivation.info_message')}</Text>
@@ -193,7 +245,15 @@ export default function UrgentMotivationScreen({ navigation }: any) {
           </Dialog.Actions>
         </Dialog>
 
-        <Dialog visible={editVisible} onDismiss={() => setEditVisible(false)} style={{ borderRadius: 20 }}>
+        <Dialog
+          visible={editVisible}
+          onDismiss={() => setEditVisible(false)}
+          style={{
+            ...glassPanel(theme, 'strong'),
+            borderRadius: 22,
+            backgroundColor: theme.colors.elevation.level3,
+          }}
+        >
           <Dialog.Title>{t('motivation.edit_title')}</Dialog.Title>
           <Dialog.Content>
             <TextInput
@@ -202,6 +262,7 @@ export default function UrgentMotivationScreen({ navigation }: any) {
               value={editValue}
               onChangeText={setEditValue}
               autoFocus
+              style={{ backgroundColor: 'transparent' }}
             />
           </Dialog.Content>
           <Dialog.Actions>
@@ -210,14 +271,24 @@ export default function UrgentMotivationScreen({ navigation }: any) {
           </Dialog.Actions>
         </Dialog>
 
-        <Dialog visible={confirmVisible} onDismiss={() => setConfirmVisible(false)} style={{ borderRadius: 20 }}>
+        <Dialog
+          visible={confirmVisible}
+          onDismiss={() => setConfirmVisible(false)}
+          style={{
+            ...glassPanel(theme, 'strong'),
+            borderRadius: 22,
+            backgroundColor: theme.colors.elevation.level3,
+          }}
+        >
           <Dialog.Title>{t('motivation.delete')}</Dialog.Title>
           <Dialog.Content>
             <Text>{t('motivation.delete_confirm_message')}</Text>
           </Dialog.Content>
           <Dialog.Actions>
             <Button onPress={() => setConfirmVisible(false)}>{t('common.cancel')}</Button>
-            <Button mode="contained" buttonColor={theme.colors.error} textColor={theme.colors.onError} onPress={handleConfirmDelete}>{t('motivation.delete')}</Button>
+            <Button mode="contained" buttonColor={theme.colors.error} textColor={theme.colors.onError} onPress={handleConfirmDelete}>
+              {t('motivation.delete')}
+            </Button>
           </Dialog.Actions>
         </Dialog>
       </Portal>

@@ -1,7 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
 import { IconButton, Text, useTheme } from 'react-native-paper';
+
 import FancyHeaderLayout from './FancyHeaderLayout';
+import { AppTheme } from '../theme';
 
 type FancyHeaderBackLayoutProps = {
   title: string;
@@ -22,7 +24,7 @@ export default function FancyHeaderBackLayout({
   title,
   subtitle,
   onBack,
-  headerPct = 0.10,
+  headerPct = 0.11,
   collapsedTitleOffset = 10,
   collapsedSubtitleOffset = 0,
   contentPadding,
@@ -32,7 +34,7 @@ export default function FancyHeaderBackLayout({
   onScrollY,
   children,
 }: FancyHeaderBackLayoutProps) {
-  const theme = useTheme() as any;
+  const theme = useTheme() as AppTheme;
 
   return (
     <FancyHeaderLayout
@@ -50,22 +52,25 @@ export default function FancyHeaderBackLayout({
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <IconButton
             icon="arrow-left"
-            size={24}
+            size={22}
             onPress={onBack}
             iconColor={theme.colors.onHeader}
-            style={{ margin: 0, marginRight: 8, marginTop: collapsedTitleOffset + 5 }}
+            style={{ margin: 0, marginRight: 10, marginTop: collapsedTitleOffset + 6 }}
+            containerColor="transparent"
           />
+
           <View style={{ flex: 1 }}>
             <Text
               variant="headlineSmall"
-              style={{ color: theme.colors.onHeader, fontWeight: '700', transform: [ { translateY: collapsedTitleOffset } ] }}
+              style={{ color: theme.colors.onHeader, fontWeight: '800', transform: [ { translateY: collapsedTitleOffset } ] }}
             >
               {title}
             </Text>
+
             {!!subtitle && (
               <Text
                 variant="bodySmall"
-                style={{ color: theme.colors.onHeader, opacity: 0.85, marginTop: 2, transform: [ { translateY: collapsedSubtitleOffset } ] }}
+                style={{ color: theme.colors.onHeader, opacity: 0.82, marginTop: 2, transform: [ { translateY: collapsedSubtitleOffset } ] }}
               >
                 {subtitle}
               </Text>

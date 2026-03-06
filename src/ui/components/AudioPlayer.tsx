@@ -1,11 +1,15 @@
 import React from 'react';
 import { View } from 'react-native';
-import { Button, ProgressBar, Text } from 'react-native-paper';
+import { Button, ProgressBar, Text, useTheme } from 'react-native-paper';
 import { useAudioPlayer, useAudioPlayerStatus } from 'expo-audio';
+
+import { AppTheme } from '../theme';
+import { glassPanel, withAlpha } from '../glass';
 
 type Props = { url: string };
 
 export default function AudioPlayer({ url }: Props) {
+  const theme = useTheme() as AppTheme;
   const player = useAudioPlayer(url, { updateInterval: 250 });
   const status = useAudioPlayerStatus(player);
   const isLoaded = status.isLoaded;
@@ -30,12 +34,21 @@ export default function AudioPlayer({ url }: Props) {
   const progress = duration ? position / duration : 0;
 
   return (
-    <View style={{ padding: 12 }}>
+    <View
+      style={{
+        ...glassPanel(theme, 'soft'),
+        padding: 12,
+        backgroundColor: theme.colors.elevation.level2,
+        borderRadius: 18,
+      }}
+    >
       <Button mode="contained-tonal" icon={isPlaying ? 'pause' : 'play'} onPress={togglePlay}>
         {isPlaying ? 'Pause' : 'Play'}
       </Button>
-      <ProgressBar progress={progress} style={{ marginTop: 8 }} />
-      <Text style={{ marginTop: 4 }}>
+
+      <ProgressBar progress={progress} style={{ marginTop: 10, borderRadius: 999 }} color={theme.colors.primary} />
+
+      <Text style={{ marginTop: 6, color: theme.colors.onSurfaceVariant }}>
         {formatMillis(position)} / {formatMillis(duration)}
       </Text>
     </View>

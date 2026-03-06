@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { Platform, View, TouchableOpacity, StyleSheet } from 'react-native';
+import { Platform, TouchableOpacity, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Text, useTheme } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { TextInput, useTheme } from 'react-native-paper';
+
+import { AppTheme } from '../theme';
+import { withAlpha } from '../glass';
 
 type Props = {
-  value: string;           // 'HH:mm'
+  value: string;
   label: string;
   onChange: (value: string) => void;
 };
@@ -25,42 +27,26 @@ function formatTime(date: Date) {
 
 export default function TimePickerField({ value, label, onChange }: Props) {
   const [ open, setOpen ] = useState(false);
-  const theme = useTheme();
+  const theme = useTheme() as AppTheme;
 
   return (
     <View>
-      <TouchableOpacity
-        style={[
-          styles.timeButton,
-          {
-            backgroundColor: theme.colors.surface,
-            borderColor: theme.colors.outlineVariant,
-          }
-        ]}
-        onPress={() => setOpen(true)}
-        activeOpacity={0.7}
-      >
-        <MaterialCommunityIcons
-          name="clock-outline"
-          size={20}
-          color={theme.colors.onSurfaceVariant}
-        />
-        <View style={styles.timeTextContainer}>
-          <Text
-            variant="labelSmall"
-            style={{ color: theme.colors.onSurfaceVariant, marginBottom: 2 }}
-          >
-            {label}
-          </Text>
-          <Text
-            variant="titleMedium"
-            style={{
-              color: theme.colors.onSurface,
-              fontWeight: '500',
-            }}
-          >
-            {value}
-          </Text>
+      <TouchableOpacity activeOpacity={0.86} onPress={() => setOpen(true)}>
+        <View pointerEvents="none">
+          <TextInput
+            label={label}
+            value={value}
+            mode="outlined"
+            editable={false}
+            style={{ backgroundColor: theme.colors.surface }}
+            contentStyle={{ minHeight: 54 }}
+            outlineStyle={{ borderRadius: 12 }}
+            outlineColor={withAlpha(theme.colors.outline, 0.72)}
+            activeOutlineColor={theme.colors.primary}
+            textColor={theme.colors.onSurface}
+            left={<TextInput.Icon icon="clock-outline" color={theme.colors.onSurfaceVariant} />}
+            right={<TextInput.Icon icon={open ? 'chevron-up' : 'chevron-down'} color={theme.colors.onSurfaceVariant} />}
+          />
         </View>
       </TouchableOpacity>
 
@@ -72,10 +58,7 @@ export default function TimePickerField({ value, label, onChange }: Props) {
           display={Platform.OS === 'android' ? 'spinner' : 'default'}
           onChange={(event, date) => {
             setOpen(false);
-
-            // Android: dismiss = cancel
             if (event.type === 'dismissed' || !date) return;
-
             onChange(formatTime(date));
           }}
         />
@@ -83,17 +66,3 @@ export default function TimePickerField({ value, label, onChange }: Props) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  timeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: 14,
-  },
-  timeTextContainer: {
-    flex: 1,
-  },
-});

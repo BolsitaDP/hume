@@ -1,6 +1,9 @@
-﻿import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Icon, Text, useTheme } from 'react-native-paper';
+
+import { AppTheme } from '../theme';
+import { glassFloating, withAlpha } from '../glass';
 
 type Props = {
   expanded: boolean;
@@ -9,9 +12,9 @@ type Props = {
   icon?: string;
   iconOnly?: boolean;
   backgroundColor?: string;
-  textColor?: string;         // override global
-  textColorLight?: string;    // override when theme is light
-  textColorDark?: string;     // override when theme is dark
+  textColor?: string;
+  textColorLight?: string;
+  textColorDark?: string;
 };
 
 export default function AnimatedFab({
@@ -25,20 +28,20 @@ export default function AnimatedFab({
   textColorLight,
   textColorDark,
 }: Props) {
-  const theme = useTheme();
+  const theme = useTheme() as AppTheme;
   const anim = useRef(new Animated.Value(expanded ? 1 : 0)).current;
 
   useEffect(() => {
     Animated.timing(anim, {
       toValue: expanded ? 1 : 0,
-      duration: 180,
-      useNativeDriver: false, // width uses layout, can't be native driver
+      duration: 220,
+      useNativeDriver: false,
     }).start();
   }, [ expanded, anim ]);
 
   const width = iconOnly ? 56 : anim.interpolate({
     inputRange: [ 0, 1 ],
-    outputRange: [ 56, 168 ], // colapsado -> extendido
+    outputRange: [ 56, 180 ],
   });
 
   const labelOpacity = anim.interpolate({
@@ -51,34 +54,33 @@ export default function AnimatedFab({
     outputRange: [ -8, 0 ],
   });
 
-  const bg = (backgroundColor ?? (theme as any).colors.primary) as string;
+  const bg = (backgroundColor ?? theme.colors.elevation.level3) as string;
   const toLower = (s: string) => (s || '').toLowerCase();
-  const colors: any = (theme as any).colors || {};
+  const colors: any = theme.colors;
   const autoOnColor = (
     toLower(bg) === toLower(colors.primary) ? colors.onPrimary
-    : toLower(bg) === toLower(colors.error) ? colors.onError
-    : colors.success && toLower(bg) === toLower(colors.success) ? colors.onSuccess
-    : colors.onPrimary
+      : toLower(bg) === toLower(colors.error) ? colors.onError
+        : colors.success && toLower(bg) === toLower(colors.success) ? colors.onSuccess
+          : theme.colors.onSurface
   );
-  const onColor = textColor ?? ((theme as any).dark ? (textColorDark ?? autoOnColor) : (textColorLight ?? autoOnColor));
+
+  const onColor = textColor ?? (theme.dark ? (textColorDark ?? autoOnColor) : (textColorLight ?? autoOnColor));
 
   return (
     <Animated.View
       style={[
         styles.container,
         {
+          ...glassFloating(theme),
           width,
           backgroundColor: bg,
+          borderColor: withAlpha(theme.colors.outlineVariant, 0.82),
         },
       ]}
     >
-      <TouchableOpacity onPress={onPress} style={styles.inner}>
+      <TouchableOpacity onPress={onPress} style={styles.inner} activeOpacity={0.84}>
         <View style={styles.iconSlot}>
-          <Icon
-            source={icon}
-            color={onColor}
-            size={24}
-          />
+          <Icon source={icon} color={onColor} size={24} />
         </View>
 
         {!iconOnly && (
@@ -86,13 +88,13 @@ export default function AnimatedFab({
             style={{
               opacity: labelOpacity,
               transform: [ { translateX: labelTranslateX } ],
-              paddingRight: 16,
+              paddingRight: 18,
             }}
             pointerEvents={expanded ? 'auto' : 'none'}
           >
             <Text
               variant="labelLarge"
-              style={{ color: onColor }}
+              style={{ color: onColor, fontWeight: '700', letterSpacing: 0.3 }}
               numberOfLines={1}
             >
               {label}
@@ -107,8 +109,7 @@ export default function AnimatedFab({
 const styles = StyleSheet.create({
   container: {
     height: 56,
-    borderRadius: 28,
-    elevation: 6, // Android shadow
+    borderRadius: 16,
     justifyContent: 'center',
   },
   inner: {

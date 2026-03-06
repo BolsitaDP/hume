@@ -1,23 +1,26 @@
-﻿import React, { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { ShareIntentProvider } from 'expo-share-intent';
-import { View, useColorScheme } from 'react-native';
-import { PaperProvider } from 'react-native-paper';
-import { Snackbar, Text } from 'react-native-paper';
+import { View } from 'react-native';
+import { PaperProvider, Snackbar, Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { NavigationContainer, DefaultTheme as NavDefaultTheme, DarkTheme as NavDarkTheme, Theme as NavTheme } from '@react-navigation/native';
+import {
+  DarkTheme as NavDarkTheme,
+  NavigationContainer,
+  Theme as NavTheme,
+} from '@react-navigation/native';
 import * as Notifications from 'expo-notifications';
 
 import RootNavigator from './src/navigation/RootNavigator';
 import ShareIntentHandler from './src/services/ShareIntentHandler';
-import { lightTheme, darkTheme } from './src/ui/theme';
+import { darkTheme, AppTheme } from './src/ui/theme';
 import { useSettingsStore } from './src/store/settings.store';
 import { configureAndroidChannel, ensureNotificationPermission } from './src/services/notifications';
+import LiquidGlassBackground from './src/ui/components/LiquidGlassBackground';
+import { glassPanel, withAlpha } from './src/ui/glass';
 
 export default function App() {
   const hydrateSettings = useSettingsStore((s) => s.hydrate);
   const hydrated = useSettingsStore((s) => s.hydrated);
-  const themeMode = useSettingsStore((s) => s.themeMode);
-  const scheme = useColorScheme();
 
   const [ snackbarVisible, setSnackbarVisible ] = React.useState(false);
   const [ snackbarMessage, setSnackbarMessage ] = React.useState('');
@@ -49,17 +52,25 @@ export default function App() {
   }, [ hydrateSettings ]);
 
   const handleHabitNotificationReschedule = async (notification: Notifications.Notification) => {
-    const { data } = notification.request.content;
+    const { title, subtitle, body, data, sound, badge } = notification.request.content;
     const habitId = (data as any)?.habitId;
     const dayOfWeek = (data as any)?.dayOfWeek;
 
     if (!habitId || !dayOfWeek) return;
 
     const secondsInWeek = 7 * 24 * 60 * 60;
+    const content: Notifications.NotificationContentInput = {
+      title,
+      subtitle,
+      body,
+      data,
+      sound: sound ?? undefined,
+      badge: badge ?? undefined,
+    };
 
     try {
       await Notifications.scheduleNotificationAsync({
-        content: notification.request.content,
+        content,
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
           seconds: secondsInWeek,
@@ -72,18 +83,18 @@ export default function App() {
   };
 
   if (!hydrated) return null;
-  const theme = themeMode === 'dark' ? darkTheme : themeMode === 'light' ? lightTheme : (scheme === 'dark' ? darkTheme : lightTheme);
 
-  const navBase = (theme as any).dark ? NavDarkTheme : NavDefaultTheme;
+  const theme: AppTheme = darkTheme;
+
   const navTheme: NavTheme = {
-    ...navBase,
+    ...NavDarkTheme,
     colors: {
-      ...navBase.colors,
+      ...NavDarkTheme.colors,
       background: theme.colors.background,
-      card: (theme.colors as any).elevation?.level2 ?? theme.colors.surface,
-      text: (theme as any).colors?.onBackground ?? ((theme as any).dark ? '#FFFFFF' : '#000000'),
+      card: theme.colors.surface,
+      text: theme.colors.onSurface,
       primary: theme.colors.primary,
-      border: theme.colors.outline,
+      border: withAlpha(theme.colors.outlineVariant, 0.8),
       notification: theme.colors.error,
     },
   };
@@ -92,37 +103,39 @@ export default function App() {
     <ShareIntentProvider>
       <PaperProvider theme={theme}>
         <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
+          <LiquidGlassBackground />
+
           <NavigationContainer theme={navTheme}>
             <ShareIntentHandler />
             <RootNavigator />
           </NavigationContainer>
+
           <Snackbar
             visible={snackbarVisible}
             onDismiss={() => setSnackbarVisible(false)}
             duration={5000}
             action={{
-              label: '✕',
+              label: 'x',
+              labelStyle: { color: theme.colors.onSurface, fontWeight: '700' },
               onPress: () => setSnackbarVisible(false),
             }}
             style={{
-              marginBottom: 80,
-              marginHorizontal: 12,
-              backgroundColor: (theme.colors as any).primary ?? '#5B7C99',
-              borderRadius: 12,
-              elevation: 6,
-              paddingVertical: 4,
+              ...glassPanel(theme, 'strong'),
+              marginBottom: 84,
+              marginHorizontal: 14,
+              borderRadius: 14,
             }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <MaterialCommunityIcons
                 name="bell-ring"
                 size={20}
-                color="#FFFFFF"
+                color={theme.colors.primary}
               />
               <Text
                 variant="bodyMedium"
                 style={{
-                  color: '#FFFFFF',
+                  color: theme.colors.onSurface,
                   flex: 1,
                   fontWeight: '500',
                 }}

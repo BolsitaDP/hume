@@ -1,21 +1,23 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
-import { View, TouchableOpacity, StyleSheet } from 'react-native';
-import { Button, Checkbox, List, Text, TextInput, useTheme } from 'react-native-paper';
+import React, { useEffect, useMemo, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { Button, List, Text, TextInput, TouchableRipple, useTheme } from 'react-native-paper';
 
 import { RootStackParamList } from '../navigation/RootNavigator';
-import { useHabitsStore, WeekDay, HabitCategory } from '../store/habits.store';
+import { HabitCategory, useHabitsStore, WeekDay } from '../store/habits.store';
 import { useSettingsStore } from '../store/settings.store';
 
 import { t } from '../i18n';
 import { getCategoryColor } from '../utils/categoryColors';
 import { pickRageMessage } from '../services/rageMessages';
-import { ensureNotificationPermission, configureAndroidChannel } from '../services/notifications';
+import { configureAndroidChannel, ensureNotificationPermission } from '../services/notifications';
 import { scheduleHabitNotifications } from '../services/habitNotifications';
 
 import TimePickerField from '../ui/components/TimePickerField';
 import FancyHeaderBackLayout from '../ui/layouts/FancyHeaderBackLayout';
+import { AppTheme } from '../ui/theme';
+import { withAlpha } from '../ui/glass';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddHabit'>;
 
@@ -23,10 +25,10 @@ export default function AddHabitScreen({ navigation, route }: Props) {
   const { habitId } = route.params || {};
   const { habits, addHabit, updateHabit } = useHabitsStore();
   const { locale, toneLevel, notificationsEnabled } = useSettingsStore();
-  const theme = useTheme();
+  const theme = useTheme() as AppTheme;
 
-  const habitToEdit = useMemo(() =>
-    habitId ? habits.find(h => h.id === habitId) : null,
+  const habitToEdit = useMemo(
+    () => (habitId ? habits.find((h) => h.id === habitId) : null),
     [ habitId, habits ]
   );
 
@@ -35,7 +37,6 @@ export default function AddHabitScreen({ navigation, route }: Props) {
   const [ days, setDays ] = useState<WeekDay[]>([]);
   const [ time, setTime ] = useState('16:00');
 
-  // Cargar datos del hÃ¡bito si estamos editando
   useEffect(() => {
     if (habitToEdit) {
       setTitle(habitToEdit.title);
@@ -45,10 +46,9 @@ export default function AddHabitScreen({ navigation, route }: Props) {
     }
   }, [ habitToEdit ]);
 
-  // Actualizar el tÃ­tulo de la pantalla
   useEffect(() => {
     navigation.setOptions({
-      title: habitId ? t('nav.edit_habit') : t('nav.new_habit')
+      title: habitId ? t('nav.edit_habit') : t('nav.new_habit'),
     });
   }, [ habitId, navigation, locale ]);
 
@@ -85,14 +85,12 @@ export default function AddHabitScreen({ navigation, route }: Props) {
 
   const onCreate = async () => {
     if (habitId) {
-      // Modo ediciÃ³n
       await updateHabit(habitId, {
         title,
         category,
         schedule: { days, time },
       });
 
-      // Reagendar notificaciones si estÃ¡n activas
       if (notificationsEnabled && habitToEdit) {
         const allowed = await ensureNotificationPermission();
         if (allowed) {
@@ -106,33 +104,30 @@ export default function AddHabitScreen({ navigation, route }: Props) {
       }
 
       navigation.goBack();
-    } else {
-      // Modo creaciÃ³n
-      const created = await addHabit({
-        title,
-        category,
-        schedule: { days, time },
-      });
-
-      // Si no se creÃ³ (validaciÃ³n), no hacemos nada
-      if (!created) return;
-
-      // Agenda notificaciones si estÃ¡n activas
-      if (notificationsEnabled) {
-        const allowed = await ensureNotificationPermission();
-        if (allowed) {
-          await configureAndroidChannel();
-
-          await scheduleHabitNotifications({
-            habit: created,
-            title: t('notifications.title'),
-            body: pickRageMessage(locale, toneLevel),
-          });
-        }
-      }
-
-      navigation.goBack();
+      return;
     }
+
+    const created = await addHabit({
+      title,
+      category,
+      schedule: { days, time },
+    });
+
+    if (!created) return;
+
+    if (notificationsEnabled) {
+      const allowed = await ensureNotificationPermission();
+      if (allowed) {
+        await configureAndroidChannel();
+        await scheduleHabitNotifications({
+          habit: created,
+          title: t('notifications.title'),
+          body: pickRageMessage(locale, toneLevel),
+        });
+      }
+    }
+
+    navigation.goBack();
   };
 
   return (
@@ -146,43 +141,67 @@ export default function AddHabitScreen({ navigation, route }: Props) {
           value={title}
           onChangeText={setTitle}
           mode="outlined"
+          style={[ styles.nameInput, { backgroundColor: theme.colors.surface } ]}
+          outlineStyle={styles.nameInputOutline}
+          outlineColor={withAlpha(theme.colors.outline, 0.72)}
+          activeOutlineColor={theme.colors.primary}
+          contentStyle={styles.nameInputContent}
+          left={<TextInput.Icon icon="format-title" />}
+          returnKeyType="done"
         />
 
-        <List.Section title={t('add_habit.category')} style={{ marginTop: 16, marginBottom: 0 }}>
+        <List.Section title={t('add_habit.category')} style={{ marginTop: 2, marginBottom: 0 }}>
           <View style={styles.categoryContainer}>
             {categoryOptions.map((cat) => {
               const isSelected = category === cat.k;
+              const categoryColor = getCategoryColor(cat.k, theme);
+
               return (
-                <TouchableOpacity
+                <TouchableRipple
                   key={cat.k}
                   style={[
                     styles.categoryItem,
                     {
-                      backgroundColor: getCategoryColor(cat.k, theme as any),
-                      borderColor: isSelected ? theme.colors.onSurface : 'transparent',
-                      opacity: isSelected ? 1 : 0.6,
-                      shadowColor: theme.colors.shadow,
-                    }
+                      backgroundColor: isSelected
+                        ? withAlpha(categoryColor, theme.dark ? 0.28 : 0.18)
+                        : theme.colors.elevation.level1,
+                      borderColor: isSelected
+                        ? withAlpha(categoryColor, theme.dark ? 0.9 : 0.72)
+                        : withAlpha(theme.colors.outlineVariant, 0.78),
+                      borderWidth: isSelected ? 2 : 1,
+                    },
                   ]}
                   onPress={() => setCategory(cat.k)}
-                  activeOpacity={0.7}
+                  borderless={false}
                 >
-                  <MaterialCommunityIcons
-                    name={cat.icon as any}
-                    size={28}
-                    color={isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant}
-                  />
-                  <Text
-                    variant="labelSmall"
-                    style={{
-                      marginTop: 4,
-                      color: isSelected ? theme.colors.onSurface : theme.colors.onSurfaceVariant,
-                      fontWeight: isSelected ? '600' : '400',
-                    }}
-                  >
-                    {cat.l}
-                  </Text>
-                </TouchableOpacity>
+                  <View style={styles.categoryInner}>
+                    <View
+                      style={[
+                        styles.categoryAccent,
+                        {
+                          backgroundColor: withAlpha(categoryColor, isSelected ? 0.92 : 0),
+                        },
+                      ]}
+                    />
+
+                    <MaterialCommunityIcons
+                      name={cat.icon as any}
+                      size={29}
+                      color={isSelected ? categoryColor : theme.colors.onSurfaceVariant}
+                    />
+
+                    <Text
+                      variant="labelSmall"
+                      style={{
+                        marginTop: 6,
+                        color: isSelected ? categoryColor : theme.colors.onSurfaceVariant,
+                        fontWeight: isSelected ? '700' : '500',
+                      }}
+                    >
+                      {cat.l}
+                    </Text>
+                  </View>
+                </TouchableRipple>
               );
             })}
           </View>
@@ -193,128 +212,138 @@ export default function AddHabitScreen({ navigation, route }: Props) {
             {weekOptions.map((d) => {
               const isSelected = days.includes(d.k);
               return (
-                <TouchableOpacity
+                <TouchableRipple
                   key={d.k}
                   style={[
                     styles.dayItem,
                     {
-                      backgroundColor: isSelected ? theme.colors.primaryContainer : theme.colors.surface,
-                      borderColor: isSelected ? theme.colors.primary : theme.colors.outlineVariant,
-                      shadowColor: theme.colors.shadow,
-                    }
+                      backgroundColor: isSelected
+                        ? withAlpha(theme.colors.primaryContainer, theme.dark ? 0.86 : 0.92)
+                        : theme.colors.elevation.level1,
+                      borderColor: isSelected
+                        ? withAlpha(theme.colors.primary, theme.dark ? 0.6 : 0.48)
+                        : withAlpha(theme.colors.outlineVariant, 0.76),
+                    },
                   ]}
                   onPress={() => toggleDay(d.k)}
-                  activeOpacity={0.7}
+                  borderless={false}
                 >
-                  <Text
-                    variant="labelLarge"
-                    style={{
-                      color: isSelected ? theme.colors.primary : theme.colors.onSurfaceVariant,
-                      fontWeight: isSelected ? '700' : '500',
-                      textAlign: 'center',
-                    }}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                  >
-                    {d.l}
-                  </Text>
-                </TouchableOpacity>
+                  <View style={styles.dayInner}>
+                    <Text
+                      variant="labelLarge"
+                      style={{
+                        color: isSelected ? theme.colors.primary : theme.colors.onSurfaceVariant,
+                        fontWeight: isSelected ? '700' : '600',
+                        textAlign: 'center',
+                      }}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
+                      {d.l}
+                    </Text>
+                  </View>
+                </TouchableRipple>
               );
             })}
           </View>
         </List.Section>
 
         <List.Section>
-          <TimePickerField
-            label={t('add_habit.time')}
-            value={time}
-            onChange={setTime}
-          />
+          <TimePickerField label={t('add_habit.time')} value={time} onChange={setTime} />
         </List.Section>
 
         {!canCreate && (
-          <Text style={{ marginBottom: 8, color: theme.colors.error, textAlign: 'center' }}>
+          <Text style={{ marginBottom: 10, color: theme.colors.error, textAlign: 'center' }}>
             {t('add_habit.validation')}
           </Text>
         )}
 
-        <TouchableOpacity
-          style={[
-            styles.createButton,
-            {
-              backgroundColor: canCreate ? theme.colors.primary : theme.colors.surfaceDisabled,
-            }
-          ]}
+        <Button
+          mode="contained"
           onPress={onCreate}
           disabled={!canCreate}
-          activeOpacity={0.8}
+          style={styles.createButton}
+          contentStyle={styles.createButtonContent}
+          labelStyle={styles.createButtonLabel}
         >
-          <Text
-            variant="titleMedium"
-            style={{
-              color: canCreate ? theme.colors.onPrimary : theme.colors.onSurfaceDisabled,
-              fontWeight: '600',
-            }}
-          >
-            {habitId ? t('add_habit.update') : t('add_habit.create')}
-          </Text>
-        </TouchableOpacity>
+          {habitId ? t('add_habit.update') : t('add_habit.create')}
+        </Button>
       </FancyHeaderBackLayout>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  nameInput: {
+    marginBottom: 12,
+    backgroundColor: 'transparent',
+  },
+  nameInputOutline: {
+    borderRadius: 12,
+  },
+  nameInputContent: {
+    minHeight: 54,
+  },
   categoryContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    marginTop: 8,
+    gap: 10,
+    marginTop: 4,
   },
   categoryItem: {
-    width: '30%',
-    aspectRatio: 1.1,
+    width: '31%',
+    aspectRatio: 1.05,
     borderRadius: 12,
-    justifyContent: 'center',
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  categoryInner: {
+    flex: 1,
     alignItems: 'center',
-    padding: 6,
-    borderWidth: 2,
-    elevation: 2,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  categoryAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
   },
   daysContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginTop: 8,
+    marginTop: 6,
   },
   dayItem: {
     flexGrow: 1,
     flexBasis: '22%',
     maxWidth: '31%',
-    paddingVertical: 14,
-    paddingHorizontal: 4,
-    borderRadius: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  dayInner: {
+    minHeight: 46,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    elevation: 1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 1,
+    paddingHorizontal: 6,
   },
   createButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: 14,
+    marginBottom: 18,
+    borderRadius: 12,
+  },
+  createButtonContent: {
+    minHeight: 52,
+  },
+  createButtonLabel: {
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
 });
-
-
-

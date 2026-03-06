@@ -1,18 +1,21 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Text, useTheme } from 'react-native-paper';
 
 import HabitCard from '../ui/components/HabitCard';
 import AnimatedFab from '../ui/components/AnimatedFab';
 import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 import { useHabitsStore } from '../store/habits.store';
-
 import { t } from '../i18n';
 import { isHabitScheduledToday } from '../utils/schedule';
+import { AppTheme } from '../ui/theme';
+import { glassPanel } from '../ui/glass';
 
 export default function HomeScreen({ navigation }: any) {
   const { habits, hydrated, hydrate, toggleToday } = useHabitsStore();
-  const theme = useTheme();
+  const theme = useTheme() as AppTheme;
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     hydrate();
@@ -23,8 +26,9 @@ export default function HomeScreen({ navigation }: any) {
     return habits.filter((h) => isHabitScheduledToday(h.schedule.days, now));
   }, [ habits ]);
 
-  // FAB shrink/expand
   const [ fabExpanded, setFabExpanded ] = useState(true);
+  const baseFabBottom = Math.max(16, insets.bottom + 8);
+  const secondaryFabBottom = baseFabBottom + 68;
 
   return (
     <View style={{ flex: 1 }}>
@@ -39,25 +43,52 @@ export default function HomeScreen({ navigation }: any) {
         }}
       >
         {!hydrated ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-            <Text style={{ textAlign: 'center', fontSize: 16 }}>{t('common.loading')}</Text>
+          <View
+            style={{
+              ...glassPanel(theme, 'soft'),
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              paddingVertical: 28,
+              backgroundColor: theme.colors.elevation.level2,
+            }}
+          >
+            <Text style={{ textAlign: 'center', fontSize: 16, color: theme.colors.onSurface }}>{t('common.loading')}</Text>
           </View>
         ) : habits.length === 0 ? (
-          <View style={{ alignItems: 'center', justifyContent: 'center', flex: 1, paddingHorizontal: 32 }}>
-            <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 24 }}>{t('home.empty')}</Text>
-            <Button
-              mode="contained"
-              icon="plus"
-              onPress={() => navigation.navigate('AddHabit')}
-              style={{ marginTop: 8 }}
-            >
+          <View
+            style={{
+              ...glassPanel(theme, 'soft'),
+              alignItems: 'center',
+              justifyContent: 'center',
+              flex: 1,
+              paddingHorizontal: 28,
+              paddingVertical: 28,
+              backgroundColor: theme.colors.elevation.level2,
+            }}
+          >
+            <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 24, color: theme.colors.onSurfaceVariant }}>
+              {t('home.empty')}
+            </Text>
+
+            <Button mode="contained" icon="plus" onPress={() => navigation.navigate('AddHabit')} style={{ borderRadius: 14 }}>
               {t('home.add_habit')}
             </Button>
           </View>
         ) : (
           <>
             {habitsToday.length === 0 ? (
-              <Text style={{ marginBottom: 12 }}>{t('home.no_upcoming')}</Text>
+              <View
+                style={{
+                  ...glassPanel(theme, 'soft'),
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  marginBottom: 10,
+                  backgroundColor: theme.colors.elevation.level2,
+                }}
+              >
+                <Text style={{ color: theme.colors.onSurfaceVariant }}>{t('home.no_upcoming')}</Text>
+              </View>
             ) : (
               habitsToday.map((h) => (
                 <HabitCard
@@ -72,7 +103,7 @@ export default function HomeScreen({ navigation }: any) {
         )}
       </FancyHeaderLayout>
 
-      <View style={{ position: 'absolute', right: 16, bottom: 88 }}>
+      <View style={{ position: 'absolute', right: 20, bottom: secondaryFabBottom }}>
         <AnimatedFab
           expanded={fabExpanded}
           label={t('home.urgent_motivation')}
@@ -84,7 +115,7 @@ export default function HomeScreen({ navigation }: any) {
         />
       </View>
 
-      <View style={{ position: 'absolute', right: 16, bottom: 16 }}>
+      <View style={{ position: 'absolute', right: 20, bottom: baseFabBottom }}>
         <AnimatedFab
           expanded={fabExpanded}
           label={t('home.add_habit')}

@@ -13,7 +13,8 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bolsita.hume"
     },
     "android": {
       "adaptiveIcon": {
@@ -27,7 +28,9 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.bolsita.hume",
       "permissions": [
-        "android.permission.POST_NOTIFICATIONS"
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "intentFilters": [
         {
@@ -54,6 +57,11 @@
       "expo-notifications",
       "expo-audio"
     ],
-    "scheme": "hume"
+    "scheme": "hume",
+    "extra": {
+      "eas": {
+        "projectId": "ec53de57-04b7-489a-a0f8-f0d7e0d0a9b4"
+      }
+    }
   }
 }

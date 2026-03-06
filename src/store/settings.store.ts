@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import { loadJSON, saveJSON } from '../services/storage';
 import { AppLocale, getDeviceLocale, setI18nLocale } from '../i18n';
 
@@ -27,7 +27,7 @@ const STORAGE_KEY = '@humiliateMe/settings_v1';
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   hydrated: false,
-  themeMode: 'system',
+  themeMode: 'dark',
   locale: getDeviceLocale(),
   toneLevel: 1,
   hasSeenWelcome: false,
@@ -38,7 +38,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const saved = await loadJSON<Partial<SettingsState>>(STORAGE_KEY);
     const locale = (saved?.locale as any) ?? get().locale;
     const hasSeenWelcome = saved?.hasSeenWelcome ?? false;
-    const themeMode = (saved as any)?.themeMode ?? 'system';
+    const themeMode = (saved as any)?.themeMode ?? 'dark';
 
     set({
       ...saved,
