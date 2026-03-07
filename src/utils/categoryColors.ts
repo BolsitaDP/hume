@@ -2,21 +2,21 @@ import { MD3Theme } from 'react-native-paper';
 import { HabitCategory } from '../store/habits.store';
 
 const lightCategoryColors: Record<HabitCategory, string> = {
-  study: '#D7ECFF',
-  exercise: '#FFE0EC',
-  health: '#DDFBEA',
-  work: '#FFEED5',
-  personal: '#E8E4FF',
-  discipline: '#FFDCE5',
+  study: '#B9D4F3',
+  exercise: '#E3BDD1',
+  health: '#BCDCCB',
+  work: '#E0C9AE',
+  personal: '#CDC3F1',
+  discipline: '#E3B9C8',
 };
 
 const darkCategoryColors: Record<HabitCategory, string> = {
-  study: '#24446C',
-  exercise: '#63304A',
-  health: '#225241',
-  work: '#5B4330',
-  personal: '#423A74',
-  discipline: '#6A3044',
+  study: '#1E3A5B',
+  exercise: '#52263D',
+  health: '#1C4637',
+  work: '#4A3626',
+  personal: '#342E60',
+  discipline: '#542639',
 };
 
 export const getCategoryColor = (

@@ -108,10 +108,11 @@ export default function HomeScreen({ navigation }: any) {
           expanded={fabExpanded}
           label={t('home.urgent_motivation')}
           onPress={() => navigation.navigate('UrgentMotivation')}
-          icon="flash"
+          icon="lightning-bolt"
           iconOnly={true}
-          backgroundColor={theme.colors.urgent}
-          textColorDark={theme.colors.onUrgent}
+          backgroundColor={theme.colors.errorContainer}
+          textColorDark={theme.colors.onErrorContainer}
+          textColorLight={theme.colors.onErrorContainer}
         />
       </View>
 

@@ -1,4 +1,4 @@
-import React from 'react';
+ï»¿import React from 'react';
 import { Alert, TouchableOpacity, View } from 'react-native';
 import { Card, IconButton, Text, useTheme } from 'react-native-paper';
 
@@ -8,7 +8,6 @@ import { getCategoryColor } from '../../utils/categoryColors';
 import { t } from '../../i18n';
 import { formatScheduleLabel } from '../../utils/schedule';
 import { AppTheme } from '../theme';
-import { glassPanel, withAlpha } from '../glass';
 
 type Props = {
   habit: Habit;
@@ -26,11 +25,11 @@ export default function HabitCard({ habit, onToggleToday, onPress, canToggleToda
 
   return (
     <Card
+      mode="contained"
       style={{
-        ...glassPanel(theme, 'soft'),
         marginBottom: 12,
-        backgroundColor: withAlpha(categoryColor, theme.dark ? 0.34 : 0.56),
-        borderColor: withAlpha(theme.colors.outlineVariant, theme.dark ? 0.7 : 0.55),
+        backgroundColor: categoryColor,
+        borderRadius: 16,
       }}
     >
       <Card.Content style={{ paddingVertical: 16 }}>
@@ -48,7 +47,7 @@ export default function HabitCard({ habit, onToggleToday, onPress, canToggleToda
 
               <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 2 }}>
                 {doneToday ? t('home.completed_today') : t('home.not_done_today')}
-                {'  •  '}
+                {'  |  '}
                 {scheduleLabel}
               </Text>
             </View>
