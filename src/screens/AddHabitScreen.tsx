@@ -10,7 +10,7 @@ import { useSettingsStore } from '../store/settings.store';
 
 import { t } from '../i18n';
 import { getCategoryColor } from '../utils/categoryColors';
-import { pickRageMessage } from '../services/rageMessages';
+import { pickMotivationMessage } from '../services/rageMessages';
 import { configureAndroidChannel, ensureNotificationPermission } from '../services/notifications';
 import { scheduleHabitNotifications } from '../services/habitNotifications';
 
@@ -24,7 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, 'AddHabit'>;
 export default function AddHabitScreen({ navigation, route }: Props) {
   const { habitId } = route.params || {};
   const { habits, addHabit, updateHabit } = useHabitsStore();
-  const { locale, toneLevel, notificationsEnabled } = useSettingsStore();
+  const { locale, toneLevel, motivationStyle, notificationsEnabled } = useSettingsStore();
   const theme = useTheme() as AppTheme;
 
   const habitToEdit = useMemo(
@@ -95,12 +95,12 @@ export default function AddHabitScreen({ navigation, route }: Props) {
         const allowed = await ensureNotificationPermission();
         if (allowed) {
           await configureAndroidChannel();
-          await scheduleHabitNotifications({
-            habit: { ...habitToEdit, title, category, schedule: { days, time } },
-            title: t('notifications.title'),
-            body: pickRageMessage(locale, toneLevel),
-          });
-        }
+        await scheduleHabitNotifications({
+          habit: { ...habitToEdit, title, category, schedule: { days, time } },
+          title: t('notifications.title'),
+          body: pickMotivationMessage(locale, toneLevel, motivationStyle, category),
+        });
+      }
       }
 
       navigation.goBack();
@@ -122,7 +122,7 @@ export default function AddHabitScreen({ navigation, route }: Props) {
         await scheduleHabitNotifications({
           habit: created,
           title: t('notifications.title'),
-          body: pickRageMessage(locale, toneLevel),
+          body: pickMotivationMessage(locale, toneLevel, motivationStyle, created.category),
         });
       }
     }

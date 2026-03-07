@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
-import { Button, Dialog, List, Portal, RadioButton, useTheme } from 'react-native-paper';
+import { Button, Dialog, List, Portal, RadioButton, Text, useTheme } from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
 import * as WebBrowser from 'expo-web-browser';
+import { useNavigation } from '@react-navigation/native';
 
 import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 import { t } from '../i18n';
 import { useSettingsStore } from '../store/settings.store';
 import { configureAndroidChannel, ensureNotificationPermission } from '../services/notifications';
+import { pickMotivationMessage } from '../services/rageMessages';
 import { AppTheme } from '../ui/theme';
 import { glassPanel, withAlpha } from '../ui/glass';
+import type { HabitCategory } from '../store/habits.store';
 
 const LEGAL_LINKS = {
   privacyPolicy: 'https://bolsitadp.github.io/hume/privacy.html',
@@ -19,13 +22,19 @@ const LEGAL_LINKS = {
 };
 
 export default function SettingsScreen() {
-  const { locale, setLocale, toneLevel, setToneLevel } = useSettingsStore();
+  const navigation = useNavigation<any>();
+  const { locale, setLocale, toneLevel, setToneLevel, motivationStyle, setMotivationStyle } = useSettingsStore();
   const theme = useTheme() as AppTheme;
 
   const [ langVisible, setLangVisible ] = useState(false);
   const [ toneVisible, setToneVisible ] = useState(false);
+  const [ motivationVisible, setMotivationVisible ] = useState(false);
+  const [ messageTestVisible, setMessageTestVisible ] = useState(false);
   const [ tmpLocale, setTmpLocale ] = useState(locale);
   const [ tmpTone, setTmpTone ] = useState<0 | 1 | 2 | 3>(toneLevel);
+  const [ tmpMotivationStyle, setTmpMotivationStyle ] = useState<'positive' | 'negative'>(motivationStyle);
+  const [ testCategory, setTestCategory ] = useState<HabitCategory>('exercise');
+  const [ testMessage, setTestMessage ] = useState('');
   const [ hasNotificationPermission, setHasNotificationPermission ] = useState(true);
 
   useEffect(() => {
@@ -35,6 +44,10 @@ export default function SettingsScreen() {
   useEffect(() => {
     if (toneVisible) setTmpTone(toneLevel);
   }, [ toneVisible, toneLevel ]);
+
+  useEffect(() => {
+    if (motivationVisible) setTmpMotivationStyle(motivationStyle);
+  }, [ motivationVisible, motivationStyle ]);
 
   const refreshNotificationPermission = async () => {
     const permission = await Notifications.getPermissionsAsync();
@@ -51,6 +64,19 @@ export default function SettingsScreen() {
     } catch {
       // no-op
     }
+  };
+
+  const openOnboardingForTesting = () => {
+    const parent = navigation.getParent?.();
+    if (parent?.navigate) {
+      parent.navigate('Welcome');
+      return;
+    }
+    navigation.navigate('Welcome');
+  };
+
+  const generateTestMessage = () => {
+    setTestMessage(pickMotivationMessage(locale, toneLevel, motivationStyle, testCategory));
   };
 
   return (
@@ -81,6 +107,114 @@ export default function SettingsScreen() {
             >
               {t('common.ok')}
             </Button>
+          </Dialog.Actions>
+        </Dialog>
+
+        <Dialog
+          visible={motivationVisible}
+          onDismiss={() => setMotivationVisible(false)}
+          style={{
+            ...glassPanel(theme, 'strong'),
+            backgroundColor: theme.colors.elevation.level3,
+          }}
+        >
+          <Dialog.Title>{t('welcome.motivation.title')}</Dialog.Title>
+          <Dialog.Content>
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant, marginBottom: 8 }}
+            >
+              {t('welcome.motivation.subtitle')}
+            </Text>
+
+            <RadioButton.Group onValueChange={(v) => setTmpMotivationStyle(v as 'positive' | 'negative')} value={tmpMotivationStyle}>
+              <RadioButton.Item label={t('welcome.motivation.positive.title')} value="positive" />
+              <RadioButton.Item label={t('welcome.motivation.negative.title')} value="negative" />
+            </RadioButton.Group>
+
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant, marginTop: 4 }}
+            >
+              {tmpMotivationStyle === 'positive'
+                ? t('welcome.motivation.positive.example')
+                : t('welcome.motivation.negative.example')}
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setMotivationVisible(false)}>{t('common.cancel')}</Button>
+            <Button
+              onPress={async () => {
+                await setMotivationStyle(tmpMotivationStyle);
+                setMotivationVisible(false);
+              }}
+            >
+              {t('common.ok')}
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+
+        <Dialog
+          visible={messageTestVisible}
+          onDismiss={() => setMessageTestVisible(false)}
+          style={{
+            ...glassPanel(theme, 'strong'),
+            backgroundColor: theme.colors.elevation.level3,
+          }}
+        >
+          <Dialog.Title>{t('settings.test_message_title')}</Dialog.Title>
+          <Dialog.Content>
+            <Text
+              variant="bodySmall"
+              style={{ color: theme.colors.onSurfaceVariant, marginBottom: 8 }}
+            >
+              {t('settings.test_message_hint')}
+            </Text>
+
+            <Text
+              variant="bodySmall"
+              style={{ color: withAlpha(theme.colors.onSurfaceVariant, 0.95), marginBottom: 6 }}
+            >
+              {`${t('welcome.motivation.title')}: ${t(`welcome.motivation.${motivationStyle}.title`)}`}
+            </Text>
+            <Text
+              variant="bodySmall"
+              style={{ color: withAlpha(theme.colors.onSurfaceVariant, 0.95), marginBottom: 10 }}
+            >
+              {`${t('settings.tone_level')}: ${t(`tone.level${toneLevel}`)}`}
+            </Text>
+
+            <RadioButton.Group onValueChange={(v) => setTestCategory(v as HabitCategory)} value={testCategory}>
+              <RadioButton.Item label={t('categories.study')} value="study" />
+              <RadioButton.Item label={t('categories.exercise')} value="exercise" />
+              <RadioButton.Item label={t('categories.health')} value="health" />
+              <RadioButton.Item label={t('categories.work')} value="work" />
+              <RadioButton.Item label={t('categories.personal')} value="personal" />
+              <RadioButton.Item label={t('categories.discipline')} value="discipline" />
+            </RadioButton.Group>
+
+            <View
+              style={{
+                ...glassPanel(theme, 'soft'),
+                backgroundColor: theme.colors.elevation.level1,
+                borderColor: withAlpha(theme.colors.outlineVariant, 0.7),
+                borderRadius: 14,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                marginTop: 10,
+              }}
+            >
+              <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 6 }}>
+                {t('settings.test_message_preview_label')}
+              </Text>
+              <Text variant="bodyMedium" style={{ color: theme.colors.onSurface }}>
+                {testMessage || t('settings.test_message_empty')}
+              </Text>
+            </View>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setMessageTestVisible(false)}>{t('common.cancel')}</Button>
+            <Button onPress={generateTestMessage}>{t('settings.test_message_generate')}</Button>
           </Dialog.Actions>
         </Dialog>
 
@@ -132,10 +266,35 @@ export default function SettingsScreen() {
           />
 
           <List.Item
+            title={t('welcome.motivation.title')}
+            description={t(`welcome.motivation.${motivationStyle}.title`)}
+            onPress={() => setMotivationVisible(true)}
+            left={(props) => <List.Icon {...props} icon="brain" />}
+          />
+
+          <List.Item
             title={t('settings.tone_level')}
             description={t(`tone.level${toneLevel}`)}
             onPress={() => setToneVisible(true)}
             left={(props) => <List.Icon {...props} icon="volume-high" />}
+          />
+
+          <List.Item
+            title={t('settings.test_message_title')}
+            description={t('settings.test_message_item_hint')}
+            onPress={() => {
+              setTestCategory('exercise');
+              setTestMessage(pickMotivationMessage(locale, toneLevel, motivationStyle, 'exercise'));
+              setMessageTestVisible(true);
+            }}
+            left={(props) => <List.Icon {...props} icon="message-text-outline" />}
+          />
+
+          <List.Item
+            title={t('settings.open_onboarding_test')}
+            description={t('settings.open_onboarding_test_hint')}
+            onPress={openOnboardingForTesting}
+            left={(props) => <List.Icon {...props} icon="flask-outline" />}
           />
         </List.Section>
       </View>
