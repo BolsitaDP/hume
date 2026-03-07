@@ -18,6 +18,7 @@ export default function WelcomeScreen() {
     toneLevel,
     setToneLevel,
     motivationStyle,
+    customMessageRules,
     setMotivationStyle,
     setHasSeenWelcome,
     locale,
@@ -26,8 +27,8 @@ export default function WelcomeScreen() {
   const [ languageMenuVisible, setLanguageMenuVisible ] = useState(false);
 
   const tonePreview = useMemo(
-    () => getMotivationMessagePreview(locale, toneLevel, motivationStyle, 'exercise'),
-    [ locale, toneLevel, motivationStyle ]
+    () => getMotivationMessagePreview(locale, toneLevel, motivationStyle, 'exercise', customMessageRules),
+    [ locale, toneLevel, motivationStyle, customMessageRules ]
   );
 
   const motivationOptions = useMemo(

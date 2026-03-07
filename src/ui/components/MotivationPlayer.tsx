@@ -6,9 +6,9 @@ import * as WebBrowser from 'expo-web-browser';
 
 import { MotivationItem } from '../../store/motivation.store';
 import { getYouTubeEmbedUrl } from '../../utils/motivation';
+import { t } from '../../i18n';
 import AudioPlayer from './AudioPlayer';
 import { AppTheme } from '../theme';
-import { glassPanel, withAlpha } from '../glass';
 
 type Props = {
   item: MotivationItem;
@@ -27,11 +27,12 @@ export default function MotivationPlayer({ item, onFallbackOpen }: Props) {
     return (
       <View
         style={{
-          ...glassPanel(theme, 'soft'),
           height: 220,
           borderRadius: 16,
+          borderWidth: 1,
+          borderColor: theme.colors.outlineVariant,
           overflow: 'hidden',
-          backgroundColor: theme.colors.elevation.level2,
+          backgroundColor: theme.colors.elevation.level1,
         }}
       >
         <WebView
@@ -48,14 +49,14 @@ export default function MotivationPlayer({ item, onFallbackOpen }: Props) {
   if (item.kind === 'tiktok' || item.kind === 'instagram') {
     return (
       <Button
-        mode="contained"
+        mode="contained-tonal"
         icon="open-in-new"
         onPress={async () => {
           await WebBrowser.openBrowserAsync(item.url);
           onFallbackOpen?.();
         }}
       >
-        Open externally
+        {t('motivation.open_external')}
       </Button>
     );
   }
@@ -64,11 +65,12 @@ export default function MotivationPlayer({ item, onFallbackOpen }: Props) {
     return (
       <View
         style={{
-          ...glassPanel(theme, 'soft'),
           height: 240,
           borderRadius: 16,
+          borderWidth: 1,
+          borderColor: theme.colors.outlineVariant,
           overflow: 'hidden',
-          backgroundColor: theme.colors.elevation.level2,
+          backgroundColor: theme.colors.elevation.level1,
         }}
       >
         <Image source={{ uri: item.url }} style={{ flex: 1 }} resizeMode="cover" />

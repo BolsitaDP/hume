@@ -1,13 +1,25 @@
-import React, { useEffect, useState } from 'react';
-import { View } from 'react-native';
-import { Button, Dialog, List, Portal, RadioButton, Text, useTheme } from 'react-native-paper';
+﻿import React, { useEffect, useState } from 'react';
+import { ScrollView, View } from 'react-native';
+import {
+  Button,
+  Checkbox,
+  Dialog,
+  IconButton,
+  List,
+  Portal,
+  RadioButton,
+  Switch,
+  Text,
+  TextInput,
+  useTheme,
+} from 'react-native-paper';
 import * as Notifications from 'expo-notifications';
 import * as WebBrowser from 'expo-web-browser';
 import { useNavigation } from '@react-navigation/native';
 
 import FancyHeaderLayout from '../ui/layouts/FancyHeaderLayout';
 import { t } from '../i18n';
-import { useSettingsStore } from '../store/settings.store';
+import { useSettingsStore, type CustomMessageRule, type MotivationStyle, type ToneLevel } from '../store/settings.store';
 import { configureAndroidChannel, ensureNotificationPermission } from '../services/notifications';
 import { pickMotivationMessage } from '../services/rageMessages';
 import { AppTheme } from '../ui/theme';
@@ -21,20 +33,59 @@ const LEGAL_LINKS = {
   support: 'mailto:sgiraldo118@gmail.com',
 };
 
+const ALL_STYLES: MotivationStyle[] = [ 'positive', 'negative' ];
+const ALL_TONES: ToneLevel[] = [ 0, 1, 2, 3 ];
+const ALL_CATEGORIES: HabitCategory[] = [ 'study', 'exercise', 'health', 'work', 'personal', 'discipline' ];
+
+function toggleItem<T extends string | number>(arr: T[], value: T): T[] {
+  return arr.includes(value) ? arr.filter((x) => x !== value) : [ ...arr, value ];
+}
+
+function buildRuleScope(rule: CustomMessageRule) {
+  const styles = rule.styles.map((s) => t(`welcome.motivation.${s}.title`)).join(', ');
+  const tones = rule.tones.map((tone) => t(`tone.level${tone}`)).join(', ');
+  const categories = rule.categories.map((cat) => t(`categories.${cat}`)).join(', ');
+  return `${styles} | ${tones} | ${categories}`;
+}
+
 export default function SettingsScreen() {
   const navigation = useNavigation<any>();
-  const { locale, setLocale, toneLevel, setToneLevel, motivationStyle, setMotivationStyle } = useSettingsStore();
+  const {
+    locale,
+    setLocale,
+    toneLevel,
+    setToneLevel,
+    motivationStyle,
+    setMotivationStyle,
+    customMessageRules,
+    addCustomMessageRule,
+    updateCustomMessageRule,
+    removeCustomMessageRule,
+    toggleCustomMessageRule,
+  } = useSettingsStore();
   const theme = useTheme() as AppTheme;
 
   const [ langVisible, setLangVisible ] = useState(false);
   const [ toneVisible, setToneVisible ] = useState(false);
   const [ motivationVisible, setMotivationVisible ] = useState(false);
   const [ messageTestVisible, setMessageTestVisible ] = useState(false);
+  const [ customMessagesVisible, setCustomMessagesVisible ] = useState(false);
+  const [ customEditorVisible, setCustomEditorVisible ] = useState(false);
+
   const [ tmpLocale, setTmpLocale ] = useState(locale);
-  const [ tmpTone, setTmpTone ] = useState<0 | 1 | 2 | 3>(toneLevel);
-  const [ tmpMotivationStyle, setTmpMotivationStyle ] = useState<'positive' | 'negative'>(motivationStyle);
+  const [ tmpTone, setTmpTone ] = useState<ToneLevel>(toneLevel);
+  const [ tmpMotivationStyle, setTmpMotivationStyle ] = useState<MotivationStyle>(motivationStyle);
+
   const [ testCategory, setTestCategory ] = useState<HabitCategory>('exercise');
   const [ testMessage, setTestMessage ] = useState('');
+
+  const [ editRuleId, setEditRuleId ] = useState<string | null>(null);
+  const [ editorText, setEditorText ] = useState('');
+  const [ editorStyles, setEditorStyles ] = useState<MotivationStyle[]>([ 'negative' ]);
+  const [ editorTones, setEditorTones ] = useState<ToneLevel[]>([ toneLevel ]);
+  const [ editorCategories, setEditorCategories ] = useState<HabitCategory[]>([ 'exercise' ]);
+  const [ editorError, setEditorError ] = useState('');
+
   const [ hasNotificationPermission, setHasNotificationPermission ] = useState(true);
 
   useEffect(() => {
@@ -76,7 +127,60 @@ export default function SettingsScreen() {
   };
 
   const generateTestMessage = () => {
-    setTestMessage(pickMotivationMessage(locale, toneLevel, motivationStyle, testCategory));
+    setTestMessage(pickMotivationMessage(locale, toneLevel, motivationStyle, testCategory, customMessageRules));
+  };
+
+  const resetCustomEditor = () => {
+    setEditRuleId(null);
+    setEditorText('');
+    setEditorStyles([ 'negative' ]);
+    setEditorTones([ toneLevel ]);
+    setEditorCategories([ 'exercise' ]);
+    setEditorError('');
+  };
+
+  const openCreateCustomRule = () => {
+    resetCustomEditor();
+    setCustomEditorVisible(true);
+  };
+
+  const openEditCustomRule = (rule: CustomMessageRule) => {
+    setEditRuleId(rule.id);
+    setEditorText(rule.text);
+    setEditorStyles(rule.styles);
+    setEditorTones(rule.tones);
+    setEditorCategories(rule.categories);
+    setEditorError('');
+    setCustomEditorVisible(true);
+  };
+
+  const saveCustomRule = async () => {
+    const trimmed = editorText.trim();
+    if (!trimmed || !editorStyles.length || !editorTones.length || !editorCategories.length) {
+      setEditorError(t('settings.custom_messages_required'));
+      return;
+    }
+
+    if (editRuleId) {
+      const current = customMessageRules.find((x) => x.id === editRuleId);
+      await updateCustomMessageRule(editRuleId, {
+        text: trimmed,
+        styles: editorStyles,
+        tones: editorTones,
+        categories: editorCategories,
+        enabled: current?.enabled,
+      });
+    } else {
+      await addCustomMessageRule({
+        text: trimmed,
+        styles: editorStyles,
+        tones: editorTones,
+        categories: editorCategories,
+      });
+    }
+
+    setCustomEditorVisible(false);
+    resetCustomEditor();
   };
 
   return (
@@ -127,7 +231,7 @@ export default function SettingsScreen() {
               {t('welcome.motivation.subtitle')}
             </Text>
 
-            <RadioButton.Group onValueChange={(v) => setTmpMotivationStyle(v as 'positive' | 'negative')} value={tmpMotivationStyle}>
+            <RadioButton.Group onValueChange={(v) => setTmpMotivationStyle(v as MotivationStyle)} value={tmpMotivationStyle}>
               <RadioButton.Item label={t('welcome.motivation.positive.title')} value="positive" />
               <RadioButton.Item label={t('welcome.motivation.negative.title')} value="negative" />
             </RadioButton.Group>
@@ -219,6 +323,152 @@ export default function SettingsScreen() {
         </Dialog>
 
         <Dialog
+          visible={customMessagesVisible}
+          onDismiss={() => setCustomMessagesVisible(false)}
+          style={{
+            ...glassPanel(theme, 'strong'),
+            backgroundColor: theme.colors.elevation.level3,
+          }}
+        >
+          <Dialog.Title>{t('settings.custom_messages')}</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 10 }}>
+              {t('settings.custom_messages_hint')}
+            </Text>
+
+            <Button mode="contained-tonal" icon="plus" onPress={openCreateCustomRule} style={{ borderRadius: 10, marginBottom: 10 }}>
+              {t('settings.custom_messages_add')}
+            </Button>
+
+            {customMessageRules.length === 0 ? (
+              <Text style={{ color: theme.colors.onSurfaceVariant }}>{t('settings.custom_messages_empty')}</Text>
+            ) : (
+              <ScrollView style={{ maxHeight: 320 }}>
+                {customMessageRules.map((rule) => (
+                  <View
+                    key={rule.id}
+                    style={{
+                      ...glassPanel(theme, 'soft'),
+                      backgroundColor: theme.colors.elevation.level1,
+                      borderColor: withAlpha(theme.colors.outlineVariant, 0.72),
+                      borderRadius: 12,
+                      paddingHorizontal: 10,
+                      paddingVertical: 8,
+                      marginBottom: 8,
+                    }}
+                  >
+                    <Text style={{ color: theme.colors.onSurface, fontWeight: '700' }} numberOfLines={2}>
+                      {rule.text}
+                    </Text>
+                    <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginTop: 4 }} numberOfLines={3}>
+                      {buildRuleScope(rule)}
+                    </Text>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 6 }}>
+                      <Switch
+                        value={rule.enabled}
+                        onValueChange={(next) => {
+                          toggleCustomMessageRule(rule.id, next).catch(() => {
+                            // no-op
+                          });
+                        }}
+                      />
+                      <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, marginLeft: 8 }}>
+                        {rule.enabled ? t('settings.custom_messages_enabled') : t('settings.custom_messages_disabled')}
+                      </Text>
+
+                      <View style={{ flex: 1 }} />
+
+                      <IconButton icon="pencil-outline" size={20} onPress={() => openEditCustomRule(rule)} />
+                      <IconButton
+                        icon="delete-outline"
+                        size={20}
+                        onPress={() => {
+                          removeCustomMessageRule(rule.id).catch(() => {
+                            // no-op
+                          });
+                        }}
+                      />
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setCustomMessagesVisible(false)}>{t('common.ok')}</Button>
+          </Dialog.Actions>
+        </Dialog>
+
+        <Dialog
+          visible={customEditorVisible}
+          onDismiss={() => setCustomEditorVisible(false)}
+          style={{
+            ...glassPanel(theme, 'strong'),
+            backgroundColor: theme.colors.elevation.level3,
+          }}
+        >
+          <Dialog.Title>{editRuleId ? t('settings.custom_messages_edit') : t('settings.custom_messages_new')}</Dialog.Title>
+          <Dialog.Content>
+            <ScrollView style={{ maxHeight: 420 }}>
+              <TextInput
+                mode="outlined"
+                label={t('settings.custom_messages_text_label')}
+                value={editorText}
+                onChangeText={setEditorText}
+                multiline
+                style={{ marginBottom: 10 }}
+              />
+
+              <Text style={{ fontWeight: '700', marginBottom: 4 }}>{t('settings.custom_messages_styles')}</Text>
+              {ALL_STYLES.map((style) => (
+                <Checkbox.Item
+                  key={style}
+                  label={t(`welcome.motivation.${style}.title`)}
+                  status={editorStyles.includes(style) ? 'checked' : 'unchecked'}
+                  onPress={() => setEditorStyles((prev) => toggleItem(prev, style))}
+                />
+              ))}
+
+              <Text style={{ fontWeight: '700', marginBottom: 4, marginTop: 6 }}>{t('settings.custom_messages_tones')}</Text>
+              {ALL_TONES.map((tone) => (
+                <Checkbox.Item
+                  key={tone}
+                  label={t(`tone.level${tone}`)}
+                  status={editorTones.includes(tone) ? 'checked' : 'unchecked'}
+                  onPress={() => setEditorTones((prev) => toggleItem(prev, tone))}
+                />
+              ))}
+
+              <Text style={{ fontWeight: '700', marginBottom: 4, marginTop: 6 }}>{t('settings.custom_messages_categories')}</Text>
+              {ALL_CATEGORIES.map((cat) => (
+                <Checkbox.Item
+                  key={cat}
+                  label={t(`categories.${cat}`)}
+                  status={editorCategories.includes(cat) ? 'checked' : 'unchecked'}
+                  onPress={() => setEditorCategories((prev) => toggleItem(prev, cat))}
+                />
+              ))}
+
+              {editorError ? (
+                <Text style={{ color: theme.colors.error, marginTop: 4 }}>{editorError}</Text>
+              ) : null}
+            </ScrollView>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button
+              onPress={() => {
+                setCustomEditorVisible(false);
+                resetCustomEditor();
+              }}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button onPress={saveCustomRule}>{t('settings.custom_messages_save')}</Button>
+          </Dialog.Actions>
+        </Dialog>
+
+        <Dialog
           visible={toneVisible}
           onDismiss={() => setToneVisible(false)}
           style={{
@@ -228,7 +478,7 @@ export default function SettingsScreen() {
         >
           <Dialog.Title>{t('settings.tone_level')}</Dialog.Title>
           <Dialog.Content>
-            <RadioButton.Group onValueChange={(v) => setTmpTone(Number(v) as 0 | 1 | 2 | 3)} value={tmpTone as any}>
+            <RadioButton.Group onValueChange={(v) => setTmpTone(Number(v) as ToneLevel)} value={tmpTone as any}>
               <RadioButton.Item label={t('tone.level0')} value={0 as any} />
               <RadioButton.Item label={t('tone.level1')} value={1 as any} />
               <RadioButton.Item label={t('tone.level2')} value={2 as any} />
@@ -280,11 +530,18 @@ export default function SettingsScreen() {
           />
 
           <List.Item
+            title={t('settings.custom_messages')}
+            description={t('settings.custom_messages_count', { count: customMessageRules.length })}
+            onPress={() => setCustomMessagesVisible(true)}
+            left={(props) => <List.Icon {...props} icon="playlist-edit" />}
+          />
+
+          <List.Item
             title={t('settings.test_message_title')}
             description={t('settings.test_message_item_hint')}
             onPress={() => {
               setTestCategory('exercise');
-              setTestMessage(pickMotivationMessage(locale, toneLevel, motivationStyle, 'exercise'));
+              setTestMessage(pickMotivationMessage(locale, toneLevel, motivationStyle, 'exercise', customMessageRules));
               setMessageTestVisible(true);
             }}
             left={(props) => <List.Icon {...props} icon="message-text-outline" />}

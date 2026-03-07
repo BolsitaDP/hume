@@ -1,5 +1,5 @@
 ﻿import { AppLocale } from '../i18n';
-import type { MotivationStyle } from '../store/settings.store';
+import type { CustomMessageRule, MotivationStyle } from '../store/settings.store';
 import type { HabitCategory } from '../store/habits.store';
 
 type ToneLevel = 0 | 1 | 2 | 3;
@@ -575,6 +575,33 @@ function getMessagePool(
   return (LOCALE_MESSAGES[ locale ] ?? LOCALE_MESSAGES.en)[ motivationStyle ][ toneLevel ][ category ];
 }
 
+function getCustomMessagePool(
+  customRules: CustomMessageRule[] | undefined,
+  motivationStyle: MotivationStyle,
+  toneLevel: ToneLevel,
+  category: HabitCategory
+) {
+  if (!customRules?.length) return [];
+
+  const matching = customRules
+    .filter((rule) =>
+      rule.enabled &&
+      rule.text.trim().length > 0 &&
+      rule.styles.includes(motivationStyle) &&
+      rule.tones.includes(toneLevel) &&
+      rule.categories.includes(category)
+    )
+    .map((rule) => ({
+      text: rule.text.trim(),
+      score: rule.styles.length + rule.tones.length + rule.categories.length,
+    }));
+
+  if (!matching.length) return [];
+
+  const bestScore = Math.min(...matching.map((row) => row.score));
+  return unique(matching.filter((row) => row.score === bestScore).map((row) => row.text));
+}
+
 function randomIndex(max: number) {
   return Math.floor(Math.random() * max);
 }
@@ -598,10 +625,13 @@ export function pickMotivationMessage(
   locale: AppLocale,
   toneLevel: ToneLevel,
   motivationStyle: MotivationStyle,
-  category: HabitCategory
+  category: HabitCategory,
+  customRules?: CustomMessageRule[]
 ) {
-  const pool = getMessagePool(locale, toneLevel, motivationStyle, category);
-  const comboKey = `${locale}:${motivationStyle}:${toneLevel}:${category}`;
+  const customPool = getCustomMessagePool(customRules, motivationStyle, toneLevel, category);
+  const pool = customPool.length ? customPool : getMessagePool(locale, toneLevel, motivationStyle, category);
+  const sourceTag = customPool.length ? 'custom' : 'system';
+  const comboKey = `${sourceTag}:${locale}:${motivationStyle}:${toneLevel}:${category}`;
   return pickNonRepeating(comboKey, pool);
 }
 
@@ -609,14 +639,21 @@ export function getMotivationMessagePreview(
   locale: AppLocale,
   toneLevel: ToneLevel,
   motivationStyle: MotivationStyle,
-  category: HabitCategory = 'study'
+  category: HabitCategory = 'study',
+  customRules?: CustomMessageRule[]
 ) {
-  const pool = getMessagePool(locale, toneLevel, motivationStyle, category);
+  const customPool = getCustomMessagePool(customRules, motivationStyle, toneLevel, category);
+  const pool = customPool.length ? customPool : getMessagePool(locale, toneLevel, motivationStyle, category);
   return pool[ 0 ] ?? '';
 }
 
-export function pickRageMessage(locale: AppLocale, toneLevel: ToneLevel, category: HabitCategory = 'study') {
-  return pickMotivationMessage(locale, toneLevel, 'negative', category);
+export function pickRageMessage(
+  locale: AppLocale,
+  toneLevel: ToneLevel,
+  category: HabitCategory = 'study',
+  customRules?: CustomMessageRule[]
+) {
+  return pickMotivationMessage(locale, toneLevel, 'negative', category, customRules);
 }
 
 export function getMessageCountPerCombo() {

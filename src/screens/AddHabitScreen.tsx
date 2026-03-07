@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Button, List, Text, TextInput, TouchableRipple, useTheme } from 'react-native-paper';
+import { Button, Checkbox, Dialog, List, Portal, Text, TextInput, TouchableRipple, useTheme } from 'react-native-paper';
 
 import { RootStackParamList } from '../navigation/RootNavigator';
 import { HabitCategory, useHabitsStore, WeekDay } from '../store/habits.store';
-import { useSettingsStore } from '../store/settings.store';
+import { MotivationStyle, ToneLevel, useSettingsStore } from '../store/settings.store';
 
 import { t } from '../i18n';
 import { getCategoryColor } from '../utils/categoryColors';
@@ -17,14 +17,28 @@ import { scheduleHabitNotifications } from '../services/habitNotifications';
 import TimePickerField from '../ui/components/TimePickerField';
 import FancyHeaderBackLayout from '../ui/layouts/FancyHeaderBackLayout';
 import { AppTheme } from '../ui/theme';
-import { withAlpha } from '../ui/glass';
+import { glassPanel, withAlpha } from '../ui/glass';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddHabit'>;
+const ALL_STYLES: MotivationStyle[] = [ 'positive', 'negative' ];
+const ALL_TONES: ToneLevel[] = [ 0, 1, 2, 3 ];
+const ALL_CATEGORIES: HabitCategory[] = [ 'study', 'exercise', 'health', 'work', 'personal', 'discipline' ];
+
+function toggleItem<T extends string | number>(arr: T[], value: T): T[] {
+  return arr.includes(value) ? arr.filter((x) => x !== value) : [ ...arr, value ];
+}
 
 export default function AddHabitScreen({ navigation, route }: Props) {
   const { habitId } = route.params || {};
   const { habits, addHabit, updateHabit } = useHabitsStore();
-  const { locale, toneLevel, motivationStyle, notificationsEnabled } = useSettingsStore();
+  const {
+    locale,
+    toneLevel,
+    motivationStyle,
+    customMessageRules,
+    notificationsEnabled,
+    addCustomMessageRule,
+  } = useSettingsStore();
   const theme = useTheme() as AppTheme;
 
   const habitToEdit = useMemo(
@@ -36,6 +50,12 @@ export default function AddHabitScreen({ navigation, route }: Props) {
   const [ category, setCategory ] = useState<HabitCategory>('personal');
   const [ days, setDays ] = useState<WeekDay[]>([]);
   const [ time, setTime ] = useState('16:00');
+  const [ customMessageVisible, setCustomMessageVisible ] = useState(false);
+  const [ customMessageText, setCustomMessageText ] = useState('');
+  const [ customStyles, setCustomStyles ] = useState<MotivationStyle[]>([ motivationStyle ]);
+  const [ customTones, setCustomTones ] = useState<ToneLevel[]>([ toneLevel ]);
+  const [ customCategories, setCustomCategories ] = useState<HabitCategory[]>([ category ]);
+  const [ customMessageError, setCustomMessageError ] = useState('');
 
   useEffect(() => {
     if (habitToEdit) {
@@ -83,6 +103,34 @@ export default function AddHabitScreen({ navigation, route }: Props) {
 
   const canCreate = title.trim().length > 0 && days.length > 0;
 
+  const openCustomMessageDialog = () => {
+    setCustomMessageText('');
+    setCustomStyles([ motivationStyle ]);
+    setCustomTones([ toneLevel ]);
+    setCustomCategories([ category ]);
+    setCustomMessageError('');
+    setCustomMessageVisible(true);
+  };
+
+  const saveCustomMessageFromHabit = async () => {
+    const trimmed = customMessageText.trim();
+    if (!trimmed || !customStyles.length || !customTones.length || !customCategories.length) {
+      setCustomMessageError(t('settings.custom_messages_required'));
+      return;
+    }
+
+    await addCustomMessageRule({
+      text: trimmed,
+      styles: customStyles,
+      tones: customTones,
+      categories: customCategories,
+    });
+
+    setCustomMessageVisible(false);
+    setCustomMessageText('');
+    setCustomMessageError('');
+  };
+
   const onCreate = async () => {
     if (habitId) {
       await updateHabit(habitId, {
@@ -95,12 +143,12 @@ export default function AddHabitScreen({ navigation, route }: Props) {
         const allowed = await ensureNotificationPermission();
         if (allowed) {
           await configureAndroidChannel();
-        await scheduleHabitNotifications({
-          habit: { ...habitToEdit, title, category, schedule: { days, time } },
-          title: t('notifications.title'),
-          body: pickMotivationMessage(locale, toneLevel, motivationStyle, category),
-        });
-      }
+          await scheduleHabitNotifications({
+            habit: { ...habitToEdit, title, category, schedule: { days, time } },
+            title: t('notifications.title'),
+            body: pickMotivationMessage(locale, toneLevel, motivationStyle, category, customMessageRules),
+          });
+        }
       }
 
       navigation.goBack();
@@ -122,7 +170,7 @@ export default function AddHabitScreen({ navigation, route }: Props) {
         await scheduleHabitNotifications({
           habit: created,
           title: t('notifications.title'),
-          body: pickMotivationMessage(locale, toneLevel, motivationStyle, created.category),
+          body: pickMotivationMessage(locale, toneLevel, motivationStyle, created.category, customMessageRules),
         });
       }
     }
@@ -252,6 +300,16 @@ export default function AddHabitScreen({ navigation, route }: Props) {
           <TimePickerField label={t('add_habit.time')} value={time} onChange={setTime} />
         </List.Section>
 
+        <Button
+          mode="outlined"
+          icon="message-plus-outline"
+          onPress={openCustomMessageDialog}
+          style={styles.customMessageButton}
+          contentStyle={styles.customMessageButtonContent}
+        >
+          {t('settings.custom_messages_add')}
+        </Button>
+
         {!canCreate && (
           <Text style={{ marginBottom: 10, color: theme.colors.error, textAlign: 'center' }}>
             {t('add_habit.validation')}
@@ -269,6 +327,69 @@ export default function AddHabitScreen({ navigation, route }: Props) {
           {habitId ? t('add_habit.update') : t('add_habit.create')}
         </Button>
       </FancyHeaderBackLayout>
+
+      <Portal>
+        <Dialog
+          visible={customMessageVisible}
+          onDismiss={() => setCustomMessageVisible(false)}
+          style={{
+            ...glassPanel(theme, 'strong'),
+            backgroundColor: theme.colors.elevation.level3,
+          }}
+        >
+          <Dialog.Title>{t('settings.custom_messages_new')}</Dialog.Title>
+          <Dialog.Content>
+            <ScrollView style={{ maxHeight: 430 }}>
+              <TextInput
+                mode="outlined"
+                label={t('settings.custom_messages_text_label')}
+                value={customMessageText}
+                onChangeText={setCustomMessageText}
+                multiline
+                style={{ marginBottom: 10 }}
+              />
+
+              <Text style={styles.customEditorSectionTitle}>{t('settings.custom_messages_styles')}</Text>
+              {ALL_STYLES.map((style) => (
+                <Checkbox.Item
+                  key={style}
+                  label={t(`welcome.motivation.${style}.title`)}
+                  status={customStyles.includes(style) ? 'checked' : 'unchecked'}
+                  onPress={() => setCustomStyles((prev) => toggleItem(prev, style))}
+                />
+              ))}
+
+              <Text style={styles.customEditorSectionTitle}>{t('settings.custom_messages_tones')}</Text>
+              {ALL_TONES.map((tone) => (
+                <Checkbox.Item
+                  key={tone}
+                  label={t(`tone.level${tone}`)}
+                  status={customTones.includes(tone) ? 'checked' : 'unchecked'}
+                  onPress={() => setCustomTones((prev) => toggleItem(prev, tone))}
+                />
+              ))}
+
+              <Text style={styles.customEditorSectionTitle}>{t('settings.custom_messages_categories')}</Text>
+              {ALL_CATEGORIES.map((cat) => (
+                <Checkbox.Item
+                  key={cat}
+                  label={t(`categories.${cat}`)}
+                  status={customCategories.includes(cat) ? 'checked' : 'unchecked'}
+                  onPress={() => setCustomCategories((prev) => toggleItem(prev, cat))}
+                />
+              ))}
+
+              {customMessageError ? (
+                <Text style={{ color: theme.colors.error, marginTop: 4 }}>{customMessageError}</Text>
+              ) : null}
+            </ScrollView>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setCustomMessageVisible(false)}>{t('common.cancel')}</Button>
+            <Button onPress={saveCustomMessageFromHabit}>{t('settings.custom_messages_save')}</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }
@@ -333,6 +454,18 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 6,
+  },
+  customMessageButton: {
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  customMessageButtonContent: {
+    minHeight: 46,
+  },
+  customEditorSectionTitle: {
+    fontWeight: '700',
+    marginTop: 6,
+    marginBottom: 4,
   },
   createButton: {
     marginTop: 14,
